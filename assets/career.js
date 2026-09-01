@@ -305,8 +305,10 @@
     function fileName(kase, round) {
         var d = new Date();
         var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+        /* 숫자면 "1차", 이미 말이 되는 라벨이면 그대로 — 합본이 "1-2합본차" 가 되지 않게. */
+        var part = /^\d+$/.test(String(round)) ? round + '차' : String(round);
         return '진로상담_' + (kase.label || '사례').replace(/[\\/:*?"<>|]/g, '_') +
-               '_' + round + '차_' +
+               '_' + part + '_' +
                d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) + '_' +
                pad(d.getHours()) + pad(d.getMinutes()) + '.md';
     }
@@ -320,15 +322,35 @@
                 '---', '', md, ''].join('\n');
     }
 
-    function downloadMd(kase, round, md) {
-        var blob = new Blob([withFrontMatter(kase, round, md)], { type: 'text/markdown;charset=utf-8' });
+    function saveBlob(text, name) {
+        var blob = new Blob([text], { type: 'text/markdown;charset=utf-8' });
         var a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = fileName(kase, round);
+        a.download = name;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+    }
+
+    function downloadMd(kase, round, md) {
+        saveBlob(withFrontMatter(kase, round, md), fileName(kase, round));
+    }
+
+    /** 1·2차 합본. 상담 기록으로 한 파일에 남기려는 용도다. */
+    function downloadCombined(kase) {
+        var k = getCase(kase.id) || kase;
+        if (!k.report1 || !k.report2) {
+            throw new Error('합본은 1차와 2차 결과가 모두 있어야 만들 수 있습니다.');
+        }
+        var body = [
+            '# ' + (k.label || '진로상담') + ' — 1·2차 합본', '',
+            '## 1차 진로·산업·진학 리서치', '',
+            k.report1.md, '', '---', '',
+            '## 2차 진로 가설 분석', '',
+            k.report2.md, ''
+        ].join('\n');
+        saveBlob(withFrontMatter(k, '1-2', body), fileName(k, '1-2합본'));
     }
 
     /* ---------------------------------------------------------- UI 보조 */
@@ -381,6 +403,7 @@
         withFrontMatter: withFrontMatter,
         fileName: fileName,
         downloadMd: downloadMd,
+        downloadCombined: downloadCombined,
 
         /* UI */
         toast: toast,

@@ -75,6 +75,14 @@
 
     var listEl = document.getElementById('newLabel');
 
+    /* 사례가 어디까지 왔는지에 따라 이어서 할 화면으로 보낸다.
+       늘 1차 입력으로 보내면 2차까지 끝난 사례에서 되돌아가는 꼴이 된다. */
+    function nextPageFor(c) {
+        if (c.report2) { return 'career-report2.html'; }
+        if (c.report1) { return 'career-step2.html'; }
+        return 'career-step1.html';
+    }
+
     function stateOf(c) {
         if (c.report2) { return { text: '2차 완료', cls: 'done' }; }
         if (c.report1) { return { text: '1차 완료', cls: 'done' }; }
@@ -93,7 +101,7 @@
             var st = stateOf(c);
             var a = document.createElement('a');
             a.className = 'case';
-            a.href = 'career-step1.html?case=' + encodeURIComponent(c.id);
+            a.href = nextPageFor(c) + '?case=' + encodeURIComponent(c.id);
             a.innerHTML =
                 '<span class="case-body">' +
                     '<span class="case-title"></span>' +

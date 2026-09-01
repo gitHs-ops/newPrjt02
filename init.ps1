@@ -66,6 +66,8 @@ $careerFiles = @(
     'career.html',
     'career-step1.html',
     'career-report1.html',
+    'career-step2.html',
+    'career-report2.html',
     'assets\career.js',
     'assets\career.css',
     'assets\prompts\prompt-1st.txt',
@@ -82,7 +84,6 @@ foreach ($f in $careerFiles) {
 }
 
 # 2c) 폐기한 프록시 방식 잔재가 되살아나 있지 않은가 —
-#     career-step2 / career-report2 는 2차용으로 다시 만들 예정이지만,
 #     career-prompts.js(생성물)는 fetch 방식으로 갈아탔으므로 돌아오면 안 된다.
 if (Test-Path -LiteralPath 'assets\career-prompts.js' -PathType Leaf) {
     Write-Fail "assets\career-prompts.js 가 되살아났다 — 프롬프트는 fetch 로 직접 읽는다(생성물 낡음 사고 방지)"
@@ -92,7 +93,8 @@ if (Test-Path -LiteralPath 'assets\career-prompts.js' -PathType Leaf) {
 
 # 3) HTML 무결성 — 비어 있지 않고 <html> 을 포함하는가
 foreach ($f in @('index.html', 'login.html', 'signup.html', 'home.html', 'error.html',
-                 'career.html', 'career-step1.html', 'career-report1.html')) {
+                 'career.html', 'career-step1.html', 'career-report1.html',
+                 'career-step2.html', 'career-report2.html')) {
     if (-not (Test-Path -LiteralPath $f -PathType Leaf)) { continue }
     $content = Get-Content -LiteralPath $f -Raw -Encoding UTF8
     if ($content.Length -gt 0 -and $content -match '(?i)<html') {
@@ -139,7 +141,8 @@ if (Test-Path -LiteralPath 'assets\auth.js' -PathType Leaf) {
 }
 
 # 5b) 진로상담 화면이 공통 자산을 참조하는가
-foreach ($f in @('career.html', 'career-step1.html', 'career-report1.html')) {
+foreach ($f in @('career.html', 'career-step1.html', 'career-report1.html',
+                 'career-step2.html', 'career-report2.html')) {
     if (-not (Test-Path -LiteralPath $f -PathType Leaf)) { continue }
     $c = Get-Content -LiteralPath $f -Raw -Encoding UTF8
     if (($c -match 'assets/career\.css') -and ($c -match 'assets/career\.js') -and ($c -match 'assets/auth\.js')) {
@@ -152,9 +155,10 @@ foreach ($f in @('career.html', 'career-step1.html', 'career-report1.html')) {
 # 5c) career.js — 복사·붙여넣기 방식의 공개 API 가 살아 있는가
 if (Test-Path -LiteralPath 'assets\career.js' -PathType Leaf) {
     $cjs = Get-Content -LiteralPath 'assets\career.js' -Raw -Encoding UTF8
-    $needed = @('loadPrompts', 'buildPrompt1', 'copyText', 'saveReport',
+    $needed = @('loadPrompts', 'buildPrompt1', 'buildPrompt2', 'copyText', 'saveReport',
                 'mdToHtml', 'listCases', 'createCase', 'updateCase', 'deleteCase',
-                'downloadMd', 'entryYearFor', 'mountChrome')
+                'downloadMd', 'downloadCombined', 'entryYearFor', 'mountChrome',
+                'FIELDS_2_EXP', 'FIELDS_2_SCHOOL')
     $missing = @()
     foreach ($fn in $needed) { if ($cjs -notmatch [regex]::Escape($fn)) { $missing += $fn } }
     if ($missing.Count -eq 0) {
@@ -184,6 +188,17 @@ if (Test-Path -LiteralPath 'assets\career.js' -PathType Leaf) {
         Write-Ok "클립보드 대체 경로 존재 (clipboard API + execCommand)"
     } else {
         Write-Fail "career.js 에 클립보드 대체 경로가 없음 — 막힌 환경에서 복사가 실패한다"
+    }
+
+    # 2차는 1차 결과를 물고 가야 의미가 있다. buildPrompt2 가 report1 을 받지 못하면
+    # "1차 결과 없음" 으로 조립돼 분석이 통째로 빗나간다.
+    if (Test-Path -LiteralPath 'career-step2.html' -PathType Leaf) {
+        $s2 = Get-Content -LiteralPath 'career-step2.html' -Raw -Encoding UTF8
+        if ($s2 -match 'buildPrompt2' -and $s2 -match 'report1') {
+            Write-Ok "2차 화면이 1차 결과를 프롬프트에 싣는다"
+        } else {
+            Write-Fail "career-step2.html 이 1차 결과를 싣지 않는다 — 2차 분석이 빈 입력으로 나간다"
+        }
     }
 
     # 붙여넣은 md 는 AI 출력이며 신뢰 대상이 아니다. 렌더 전에 이스케이프해야 한다.

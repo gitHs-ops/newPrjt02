@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#eef2ff">
+<title>1차 입력 · 프롬프트 복사 — newPrjt02</title>
+<link rel="stylesheet" as="style" crossorigin
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/auth.css">
+<link rel="stylesheet" href="assets/career.css">
+</head>
+<body class="doc">
+
+<div class="doc-wrap">
+
+    <div class="doc-head">
+        <span class="logo">🧭</span>
+        <h1>1차 입력 · 프롬프트 복사</h1>
+        <span class="who" id="whoami">—</span>
+    </div>
+
+    <div class="steps">
+        <div class="step on"><span class="n">STEP 1</span><span class="t">학생 정보 입력 → 프롬프트 복사</span></div>
+        <div class="step"><span class="n">STEP 2</span><span class="t">AI 화면에 붙여넣고 실행</span></div>
+        <div class="step"><span class="n">STEP 3</span><span class="t">받은 결과를 되돌려 넣기</span></div>
+    </div>
+
+    <div class="panel">
+        <h2 id="caseTitle">사례</h2>
+        <p class="sub">
+            <span class="req">*</span> 는 필수입니다. 나머지는 비워 두면 <code>(입력 없음)</code> 으로 전달됩니다.
+            <strong>개인식별정보·민감정보는 넣지 마십시오.</strong>
+        </p>
+        <div id="form"></div>
+    </div>
+
+    <div class="panel">
+        <h2>프롬프트</h2>
+        <p class="sub">
+            프롬프트 원문에 위 입력을 붙여 <strong>전문</strong>을 만듭니다.
+            아래 [프롬프트 복사]를 누른 뒤 AI 화면에 그대로 붙여넣으십시오.
+        </p>
+        <div class="btn-row">
+            <button type="button" class="btn btn-primary grow" id="copyBtn">프롬프트 복사</button>
+            <button type="button" class="btn btn-ghost" id="previewBtn">원문 보기</button>
+            <a class="btn btn-ghost" href="https://claude.ai/new" target="_blank" rel="noopener noreferrer">Claude 열기</a>
+        </div>
+        <p class="size" id="sizeInfo" style="margin-top:10px">프롬프트를 준비하는 중…</p>
+        <div class="mono-box" id="preview" hidden></div>
+    </div>
+
+    <div class="btn-row">
+        <a class="btn btn-primary grow" id="nextBtn" href="#">결과 붙여넣기로 →</a>
+        <a class="btn btn-ghost" href="career.html">사례 목록</a>
+    </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="assets/auth.js"></script>
+<script src="assets/career.js"></script>
+<script>
+(function () {
+    'use strict';
+    if (!Career.mountChrome()) { return; }
+
+    var id = new URLSearchParams(location.search).get('case');
+    var kase = id && Career.getCase(id);
+    if (!kase) {
+        Career.toast('사례를 찾을 수 없습니다. 목록으로 돌아갑니다.', 'error');
+        setTimeout(function () { location.href = 'career.html'; }, 1500);
+        return;
+    }
+    document.getElementById('caseTitle').textContent = kase.label;
+    document.getElementById('nextBtn').href = 'career-report1.html?case=' + encodeURIComponent(kase.id);
+
+    /* ------------------------------------------------------------ 폼 생성 */
+
+    var form = document.getElementById('form');
+
+    function scoreChoices() {
+        var g = (document.getElementById('f_grade') || {}).value || '';
+        return Career.isMiddle(g) ? Career.CHOICES.scoreMiddle : Career.CHOICES.scoreHigh;
+    }
+
+    function fillSelect(sel, items, current) {
+        sel.innerHTML = '<option value="">선택 안 함</option>';
+        items.forEach(function (v) {
+            var o = document.createElement('option');
+            o.value = v; o.textContent = v;
+            if (v === current) { o.selected = true; }
+            sel.appendChild(o);
+        });
+    }
+
+    function entryYears() {
+        var y = new Date().getFullYear(), out = [];
+        for (var i = 0; i <= 8; i++) { out.push(String(y + i) + '년'); }
+        return out;
+    }
+
+    Career.FIELDS_1.forEach(function (f) {
+        var wrap = document.createElement('div');
+        wrap.className = 'field';
+        var lab = document.createElement('label');
+        lab.setAttribute('for', 'f_' + f.key);
+        lab.textContent = f.label;
+        if (f.required) {
+            var r = document.createElement('span'); r.className = 'req'; r.textContent = '*';
+            lab.appendChild(r);
+        }
+        wrap.appendChild(lab);
+
+        var el;
+        if (f.type === 'select') {
+            el = document.createElement('select');
+        } else if (f.type === 'textarea') {
+            el = document.createElement('textarea');
+            el.rows = 2;
+        } else {
+            el = document.createElement('input');
+            el.type = 'text';
+            var iw = document.createElement('div'); iw.className = 'input-wrap';
+            iw.appendChild(el);
+            wrap.appendChild(iw);
+        }
+        el.id = 'f_' + f.key;
+        if (el.parentNode !== wrap && el.parentNode) { /* input 은 이미 붙었다 */ }
+        else { wrap.appendChild(el); }
+
+        if (f.hint) {
+            var n = document.createElement('p'); n.className = 'note'; n.textContent = f.hint;
+            wrap.appendChild(n);
+        }
+        form.appendChild(wrap);
+    });
+
+    /* 선택지 채우기 */
+    fillSelect(document.getElementById('f_grade'),  Career.CHOICES.grade,  kase.student.grade);
+    fillSelect(document.getElementById('f_univ'),   Career.CHOICES.univ,   kase.student.univ);
+    fillSelect(document.getElementById('f_region'), Career.CHOICES.region, kase.student.region);
+    fillSelect(document.getElementById('f_entryYear'), entryYears(),       kase.student.entryYear);
+    fillSelect(document.getElementById('f_score'),  scoreChoices(),        kase.student.score);
+
+    /* 저장된 값 복원 */
+    Career.FIELDS_1.forEach(function (f) {
+        var el = document.getElementById('f_' + f.key);
+        if (el && f.type !== 'select' && kase.student[f.key]) { el.value = kase.student[f.key]; }
+    });
+
+    /* 학교급을 바꾸면 성적 표기와 진학 연도가 따라 움직인다 —
+       손으로 맞추면 어긋나고, 프롬프트가 그 모순을 [확인 필요]로 되돌린다. */
+    document.getElementById('f_grade').addEventListener('change', function () {
+        fillSelect(document.getElementById('f_score'), scoreChoices(), '');
+        var y = Career.entryYearFor(this.value);
+        if (y) { document.getElementById('f_entryYear').value = y + '년'; }
+        schedule();
+    });
+
+    function collect() {
+        var s = {};
+        Career.FIELDS_1.forEach(function (f) {
+            var el = document.getElementById('f_' + f.key);
+            s[f.key] = el ? el.value.trim() : '';
+        });
+        return s;
+    }
+
+    function missing(s) {
+        return Career.FIELDS_1.filter(function (f) { return f.required && !s[f.key]; })
+                              .map(function (f) { return f.label; });
+    }
+
+    /* ------------------------------------------------- 프롬프트 조립·미리보기 */
+
+    var promptText = '';
+
+    function rebuild() {
+        var s = collect();
+        Career.updateCase(kase.id, { student: s });
+        return Career.buildPrompt1(s).then(function (text) {
+            promptText = text;
+            var kb = (text.length / 1024).toFixed(1);
+            var miss = missing(s);
+            document.getElementById('sizeInfo').textContent =
+                '프롬프트 ' + text.length.toLocaleString() + '자 (약 ' + kb + 'KB)' +
+                (miss.length ? ' · 필수 미입력: ' + miss.join(', ') : '');
+            var pv = document.getElementById('preview');
+            if (!pv.hidden) { pv.textContent = text; }
+        }).catch(function (e) {
+            promptText = '';
+            document.getElementById('sizeInfo').textContent = '프롬프트를 만들지 못했습니다 — ' + e.message;
+        });
+    }
+
+    var t = null;
+    function schedule() { clearTimeout(t); t = setTimeout(rebuild, 250); }
+    form.addEventListener('input', schedule);
+    form.addEventListener('change', schedule);
+
+    document.getElementById('previewBtn').addEventListener('click', function () {
+        var pv = document.getElementById('preview');
+        pv.hidden = !pv.hidden;
+        this.textContent = pv.hidden ? '원문 보기' : '원문 숨기기';
+        if (!pv.hidden) { pv.textContent = promptText; }
+    });
+
+    document.getElementById('copyBtn').addEventListener('click', function () {
+        if (!promptText) { Career.toast('프롬프트가 아직 준비되지 않았습니다.', 'error'); return; }
+        var miss = missing(collect());
+        Career.copyText(promptText).then(function () {
+            Career.toast('프롬프트 ' + promptText.length.toLocaleString() + '자를 복사했습니다.' +
+                (miss.length ? ' (필수 미입력: ' + miss.join(', ') + ')' : ' AI 화면에 붙여넣으십시오.'),
+                miss.length ? '' : 'ok');
+        }).catch(function (e) {
+            /* 실패를 삼키면 빈 클립보드를 붙여넣게 된다 — 원문을 열어 준다 */
+            var pv = document.getElementById('preview');
+            pv.hidden = false;
+            pv.textContent = promptText;
+            document.getElementById('previewBtn').textContent = '원문 숨기기';
+            Career.toast(e.message, 'error');
+        });
+    });
+
+    rebuild();
+})();
+</script>
+</body>
+</html>

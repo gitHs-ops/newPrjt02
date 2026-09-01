@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#eef2ff">
+<title>진로상담 분석 — newPrjt02</title>
+<link rel="stylesheet" as="style" crossorigin
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/auth.css">
+<link rel="stylesheet" href="assets/career.css">
+</head>
+<body class="doc">
+
+<div class="doc-wrap">
+
+    <div class="doc-head">
+        <span class="logo">🧭</span>
+        <h1>진로상담 분석</h1>
+        <span class="who" id="whoami">—</span>
+    </div>
+
+    <div class="panel">
+        <h2>어떻게 쓰나</h2>
+        <p class="sub">
+            이 앱은 AI 를 대신 부르지 않습니다. <strong>프롬프트를 만들어 주고, 받은 결과를 보관</strong>합니다.
+            원하는 AI(Claude · ChatGPT 등)를 직접 쓰시면 됩니다.
+        </p>
+        <div class="steps">
+            <div class="step"><span class="n">STEP 1</span><span class="t">학생 정보 입력 → 프롬프트 복사</span></div>
+            <div class="step"><span class="n">STEP 2</span><span class="t">AI 화면에 붙여넣고 실행</span></div>
+            <div class="step"><span class="n">STEP 3</span><span class="t">받은 결과를 여기 되돌려 넣기</span></div>
+        </div>
+    </div>
+
+    <div class="panel">
+        <h2>새 사례</h2>
+        <p class="sub">
+            사례 이름은 <strong>이 브라우저에만</strong> 남는 로컬 라벨이며 AI 로 전달되지 않습니다.
+            학생 실명 대신 별칭을 쓰십시오.
+        </p>
+        <div class="field">
+            <label for="newLabel">사례 이름</label>
+            <div class="input-wrap">
+                <input type="text" id="newLabel" placeholder="예: 3반 A학생 · 반도체 관심" maxlength="60">
+            </div>
+        </div>
+        <div class="btn-row">
+            <button type="button" class="btn btn-primary grow" id="createBtn">사례 만들고 시작하기</button>
+        </div>
+    </div>
+
+    <div class="panel">
+        <h2>저장된 사례</h2>
+        <p class="sub">이 브라우저의 <code>localStorage</code> 에 보관됩니다. 다른 기기에서는 보이지 않습니다.</p>
+        <div class="case-list" id="caseList"></div>
+    </div>
+
+    <div class="btn-row">
+        <a class="btn btn-ghost" href="home.html">홈으로</a>
+    </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="assets/auth.js"></script>
+<script src="assets/career.js"></script>
+<script>
+(function () {
+    'use strict';
+    if (!Career.mountChrome()) { return; }
+
+    var listEl = document.getElementById('newLabel');
+
+    function stateOf(c) {
+        if (c.report2) { return { text: '2차 완료', cls: 'done' }; }
+        if (c.report1) { return { text: '1차 완료', cls: 'done' }; }
+        return { text: '입력 전', cls: '' };
+    }
+
+    function render() {
+        var box = document.getElementById('caseList');
+        var cases = Career.listCases();
+        if (!cases.length) {
+            box.innerHTML = '<div class="empty">아직 사례가 없습니다.<br>위에서 새 사례를 만들어 시작하십시오.</div>';
+            return;
+        }
+        box.innerHTML = '';
+        cases.forEach(function (c) {
+            var st = stateOf(c);
+            var a = document.createElement('a');
+            a.className = 'case';
+            a.href = 'career-step1.html?case=' + encodeURIComponent(c.id);
+            a.innerHTML =
+                '<span class="case-body">' +
+                    '<span class="case-title"></span>' +
+                    '<span class="case-meta"></span>' +
+                '</span>' +
+                '<span class="tag ' + st.cls + '">' + st.text + '</span>' +
+                '<span class="app-go">→</span>';
+            /* 사례 이름은 사용자가 넣은 값이다 — textContent 로만 넣는다 */
+            a.querySelector('.case-title').textContent = c.label;
+            a.querySelector('.case-meta').textContent = new Date(c.at).toLocaleString('ko-KR');
+            box.appendChild(a);
+        });
+    }
+
+    document.getElementById('createBtn').addEventListener('click', function () {
+        var label = listEl.value.trim();
+        if (!label) { Career.toast('사례 이름을 입력하십시오.', 'error'); listEl.focus(); return; }
+        var c = Career.createCase(label);
+        location.href = 'career-step1.html?case=' + encodeURIComponent(c.id);
+    });
+
+    listEl.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { document.getElementById('createBtn').click(); }
+    });
+
+    render();
+})();
+</script>
+</body>
+</html>

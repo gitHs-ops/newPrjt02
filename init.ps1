@@ -63,6 +63,11 @@ foreach ($f in $appFiles) {
 # 2b) 남아 있는 진로상담 자산 — 화면·JS 는 2026-09-02 폐기했다(paste-001~006 으로 재작성).
 #     프롬프트 원문과 도구는 그대로 쓴다. 이것들이 새 버전의 재료다.
 $careerFiles = @(
+    'career.html',
+    'career-step1.html',
+    'career-report1.html',
+    'assets\career.js',
+    'assets\career.css',
     'assets\prompts\prompt-1st.txt',
     'assets\prompts\prompt-2nd.txt',
     'assets\prompts\input-1st.txt',
@@ -76,21 +81,18 @@ foreach ($f in $careerFiles) {
     if (Test-Path -LiteralPath $f -PathType Leaf) { Write-Ok $f } else { Write-Fail "$f 없음" }
 }
 
-# 2c) 폐기한 코드가 되살아나 있지 않은가 —
-#     "일부만 되살려 쓰기" 는 새 방식과 옛 방식이 섞인 상태를 만든다. 새로 쓰기로 한 결정을 집행한다.
-$retired = @('career.html', 'career-step1.html', 'career-report1.html',
-             'career-step2.html', 'career-report2.html',
-             'assets\career.js', 'assets\career.css', 'assets\career-prompts.js')
-$revived = @($retired | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf })
-if ($revived.Count -eq 0) {
-    Write-Ok "폐기한 진로상담 코드 없음 (복사·붙여넣기 방식으로 새로 작성 예정)"
+# 2c) 폐기한 프록시 방식 잔재가 되살아나 있지 않은가 —
+#     career-step2 / career-report2 는 2차용으로 다시 만들 예정이지만,
+#     career-prompts.js(생성물)는 fetch 방식으로 갈아탔으므로 돌아오면 안 된다.
+if (Test-Path -LiteralPath 'assets\career-prompts.js' -PathType Leaf) {
+    Write-Fail "assets\career-prompts.js 가 되살아났다 — 프롬프트는 fetch 로 직접 읽는다(생성물 낡음 사고 방지)"
 } else {
-    Write-Note "참고: 폐기 대상이 다시 있음 — $($revived -join ', ')"
-    Write-Note "      새로 작성한 것이면 이 검사와 아래 5b/5c 를 새 파일에 맞게 다시 쓸 것"
+    Write-Ok "프롬프트 생성물 없음 (원문을 fetch 로 직접 읽는다)"
 }
 
 # 3) HTML 무결성 — 비어 있지 않고 <html> 을 포함하는가
-foreach ($f in @('index.html', 'login.html', 'signup.html', 'home.html', 'error.html')) {
+foreach ($f in @('index.html', 'login.html', 'signup.html', 'home.html', 'error.html',
+                 'career.html', 'career-step1.html', 'career-report1.html')) {
     if (-not (Test-Path -LiteralPath $f -PathType Leaf)) { continue }
     $content = Get-Content -LiteralPath $f -Raw -Encoding UTF8
     if ($content.Length -gt 0 -and $content -match '(?i)<html') {
@@ -136,11 +138,61 @@ if (Test-Path -LiteralPath 'assets\auth.js' -PathType Leaf) {
     }
 }
 
-# 5c) career.js 검사는 2026-09-02 제거했다.
-#     복사·붙여넣기 방식으로 새로 쓰기로 하면서 파일 자체를 폐기했기 때문이다.
-#     ⚠ 새 클라이언트를 만들면 여기에 그에 맞는 검사를 다시 넣을 것 —
-#       비워 둔 채로 두면 하네스가 앱을 전혀 보지 않는 상태가 된다.
-#       최소한: 프롬프트 전문 복사 경로 · 붙여넣은 md 저장 경로 · 완결성 검사 호출.
+# 5b) 진로상담 화면이 공통 자산을 참조하는가
+foreach ($f in @('career.html', 'career-step1.html', 'career-report1.html')) {
+    if (-not (Test-Path -LiteralPath $f -PathType Leaf)) { continue }
+    $c = Get-Content -LiteralPath $f -Raw -Encoding UTF8
+    if (($c -match 'assets/career\.css') -and ($c -match 'assets/career\.js') -and ($c -match 'assets/auth\.js')) {
+        Write-Ok "$f 가 career.css / career.js / auth.js 를 참조"
+    } else {
+        Write-Fail "$f 의 공통 자산 참조 누락"
+    }
+}
+
+# 5c) career.js — 복사·붙여넣기 방식의 공개 API 가 살아 있는가
+if (Test-Path -LiteralPath 'assets\career.js' -PathType Leaf) {
+    $cjs = Get-Content -LiteralPath 'assets\career.js' -Raw -Encoding UTF8
+    $needed = @('loadPrompts', 'buildPrompt1', 'copyText', 'saveReport',
+                'mdToHtml', 'listCases', 'createCase', 'updateCase', 'deleteCase',
+                'downloadMd', 'entryYearFor', 'mountChrome')
+    $missing = @()
+    foreach ($fn in $needed) { if ($cjs -notmatch [regex]::Escape($fn)) { $missing += $fn } }
+    if ($missing.Count -eq 0) {
+        Write-Ok "career.js 공개 API $($needed.Count)종 확인"
+    } else {
+        Write-Fail "career.js 에서 누락된 API: $($missing -join ', ')"
+    }
+
+    # ⚠ 이 방식의 정체성. 앱은 AI 를 부르지 않는다.
+    #   fetch 가 프롬프트 원문 읽기 외의 곳에 생기면 자동 호출로 되돌아간 것이다.
+    if ($cjs -match 'anthropic|/exec|api\.openai') {
+        Write-Fail "career.js 가 AI 를 직접 부르려 한다 — 이 앱은 프롬프트를 조립·복사만 한다"
+    } else {
+        Write-Ok "career.js 에 AI 자동 호출 경로 없음 (복사·붙여넣기 방식 유지)"
+    }
+
+    # 프롬프트 원문을 직접 읽는가 (생성물 낡음 사고를 없앤 경로)
+    if ($cjs -match "assets/prompts/prompt-1st\.txt") {
+        Write-Ok "프롬프트 원문을 직접 읽는다 (fetch)"
+    } else {
+        Write-Fail "career.js 가 프롬프트 원문 경로를 갖고 있지 않음"
+    }
+
+    # 클립보드 대체 경로 — navigator.clipboard 는 보안 컨텍스트에서만 산다.
+    # 이게 없으면 막힌 환경에서 복사가 조용히 실패한다.
+    if ($cjs -match 'navigator\.clipboard' -and $cjs -match 'execCommand') {
+        Write-Ok "클립보드 대체 경로 존재 (clipboard API + execCommand)"
+    } else {
+        Write-Fail "career.js 에 클립보드 대체 경로가 없음 — 막힌 환경에서 복사가 실패한다"
+    }
+
+    # 붙여넣은 md 는 AI 출력이며 신뢰 대상이 아니다. 렌더 전에 이스케이프해야 한다.
+    if ($cjs -match 'replace\(/&/g' -and $cjs -match 'function esc') {
+        Write-Ok "붙여넣은 md 를 이스케이프한 뒤 렌더 (원문 태그가 살아나지 않는다)"
+    } else {
+        Write-Fail "career.js 의 mdToHtml 에 이스케이프 경로가 없음 — 붙여넣은 내용의 태그가 실행된다"
+    }
+}
 
 # 5c-2) 프록시 참고 구현이 웹검색을 켜는가
 if (Test-Path -LiteralPath 'tools\career_proxy.example.gs' -PathType Leaf) {
@@ -307,15 +359,13 @@ if ($pMissing.Count -eq 0 -and $pTotal -gt 30000) {
     Write-Fail "프롬프트 원문이 비정상적으로 작다 ($pTotal bytes) — 내용이 날아갔는지 확인할 것"
 }
 
-# 5e) 로그인 성공 페이지가 죽은 링크를 갖고 있지 않은가 —
-#     진로상담 화면을 폐기했으므로, 예전 진입 링크가 남아 있으면 404 로 간다.
-#     새 화면을 만들면 이 검사를 "새 화면으로 연결되는가" 로 다시 뒤집을 것.
+# 5e) 로그인 성공 페이지가 진로상담으로 연결되는가
 if (Test-Path -LiteralPath 'home.html' -PathType Leaf) {
     $homeHtml = Get-Content -LiteralPath 'home.html' -Raw -Encoding UTF8
-    if ($homeHtml -match 'href="career[-.]') {
-        Write-Fail "home.html 에 폐기된 진로상담 화면 링크가 남아 있음 — 404 로 간다"
+    if ($homeHtml -match 'href="career\.html"') {
+        Write-Ok "home.html 에서 진로상담(career.html) 진입 링크 확인"
     } else {
-        Write-Ok "home.html 에 죽은 진로상담 링크 없음"
+        Write-Fail "home.html 에 career.html 링크가 없음"
     }
 }
 
@@ -437,6 +487,7 @@ Write-Host "    python -m http.server $Port" -ForegroundColor Yellow
 Write-Host "    http://localhost:$Port/           첫 화면" -ForegroundColor DarkGray
 Write-Host "    http://localhost:$Port/login.html 로그인" -ForegroundColor DarkGray
 Write-Host "    http://localhost:$Port/signup.html 회원가입" -ForegroundColor DarkGray
+Write-Host "    http://localhost:$Port/career.html 진로상담 (로그인 필요)" -ForegroundColor DarkGray
 
 if (-not $Start) {
     Write-Host ""

@@ -4,6 +4,16 @@ This repository is designed for long-running coding-agent work. The goal is not
 to maximize raw code output. The goal is to leave the repo in a state where the
 next session can continue without guessing.
 
+## Current Direction (2026-09-02)
+
+분석 엔진을 **프록시 자동 호출에서 프롬프트 복사·붙여넣기로** 바꾸는 중이다.
+계획은 `feature_list.json` 의 `paste-001`~`006`, 배경은 `claude-progress.md` 의
+Session 007. **코드는 아직 프록시 방식 그대로다.**
+
+선행 결정은 `paste-006`(프록시 제거 여부)이다. `init.ps1` 이 현재 프록시 방식을
+강제하는 검사를 13건 갖고 있어, 그것을 새 방향 쪽으로 돌리기 전에는 전환이 불가능하다.
+검사를 **지우거나 느슨하게 하지 말고 방향을 뒤집을 것.**
+
 ## Startup Workflow
 
 Before writing code:

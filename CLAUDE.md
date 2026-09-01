@@ -6,6 +6,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 장시간 에이전트 작업을 전제로 한 **하네스**(`init.ps1` + `feature_list.json` +
 `claude-progress.md`)가 얹혀 있다. 속도보다 **재개 가능성과 실증**이 우선이다.
 
+## ⚠ 진행 중인 방향 전환 (2026-09-02)
+
+**분석 엔진을 프록시 자동 호출 → 프롬프트 복사·붙여넣기로 바꾸는 중이다.**
+앱이 조립한 프롬프트를 사용자가 복사 → 원하는 AI 화면에 붙여넣기 → 받은 md 를
+앱에 되돌려 넣기. API 키·프록시 배포·요금·Apps Script 6분 한도가 전부 사라진다.
+
+- 계획: `feature_list.json` 의 `paste-001`~`006` (전부 `not_started`)
+- **코드는 아직 프록시 방식 그대로다.** 아래 Architecture 의 "AI 프록시" 절은
+  현재 코드를 정확히 설명하지만, 곧 은퇴할 경로를 설명하는 것이다
+- **선행 결정은 `paste-006`** (프록시 제거 vs 선택 기능으로 유지)
+
+⚠ `init.ps1` 이 지금 **정반대를 강제한다** — 171줄의 `fetch(endpoint)` 검사가
+*"프롬프트 복사 방식으로 되돌아가지 않았는지"* 를 본다. 프록시를 강제하는 검사가
+12건 더 있다. 이걸 정리하지 않으면 새 방향으로 바꾸는 순간 검증이 실패한다.
+**느슨하게 만들지 말고 방향을 돌릴 것** — `MIRROR_TO_SHARED` 때처럼
+"있는가"를 "꺼져 있는가"로 뒤집는 방식이다.
+
 ## Commands
 
 ```powershell

@@ -1,7 +1,7 @@
 /**
  * career_proxy.example.gs — 진로 계열 공용 AI 프록시 (참고 구현)
  *
- *   버전  1.8.0
+ *   버전  1.8.1
  *   날짜  2026-09-01
  *
  *   ⚠ 이 파일을 고치면 아래 PROXY_VERSION 도 함께 올릴 것.
@@ -9,6 +9,7 @@
  *     배포된 버전은 브라우저로 /exec 를 그냥 열어 보면 확인된다.
  *
  * ── 변경 이력 ────────────────────────────────────────────────────────────────
+ *   1.8.1  2026-09-02  프로젝트명 newPrjt01 -> newPrjt02 (표시 문자열만, 동작 동일)
  *   1.8.0  2026-09-01  공용 '토큰로그' 탭 미러링 중단(MIRROR_TO_SHARED=false).
  *                      한 번의 분석이 두 탭에 이중으로 남는 게 혼란스럽다는 판단.
  *                      전용 탭 '진로상담 토큰로그' 에만 기록한다
@@ -30,7 +31,7 @@
  * 하나의 Apps Script 배포로 **두 앱을 함께** 받는다. API 키도 하나만 쓴다.
  *
  *   GET  ?prompt=...&max_tokens=...   → careerTest (기존 동작 그대로, HTML 출력)
- *   POST {system, prompt, ...}        → newPrjt01 진로상담 (md 출력 + 공식자료 웹검색)
+ *   POST {system, prompt, ...}        → newPrjt02 진로상담 (md 출력 + 공식자료 웹검색)
  *
  * ── 왜 GET 하나로 합칠 수 없나 ────────────────────────────────────────────────
  *   careerTest 는 프롬프트를 URL 쿼리에 실어 보낸다. 진로상담의 1차 프롬프트는
@@ -72,7 +73,7 @@
 
 /* 배포본 식별용. 파일을 고치면 반드시 함께 올린다.
    클라이언트가 이 값을 받아 기대 버전과 다르면 "프록시가 낡았다"고 알려 준다. */
-var PROXY_VERSION = '1.8.0';
+var PROXY_VERSION = '1.8.1';
 var PROXY_DATE = '2026-09-01';
 
 var API_URL = 'https://api.anthropic.com/v1/messages';
@@ -299,7 +300,7 @@ function doGet(e) {
         version: PROXY_VERSION,
         date: PROXY_DATE,
         get: 'careerTest (HTML)',
-        post: 'newPrjt01 진로상담 (md + web_search)',
+        post: 'newPrjt02 진로상담 (md + web_search)',
         model: DEFAULT_MODEL
       });
     }
@@ -341,7 +342,7 @@ function doGet(e) {
   }
 }
 
-/* ------------------------------------------- POST — newPrjt01 진로상담 */
+/* ------------------------------------------- POST — newPrjt02 진로상담 */
 
 /**
  * 본 요청. 클라이언트(assets/career.js)가 보내는 형태:

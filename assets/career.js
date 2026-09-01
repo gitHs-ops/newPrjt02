@@ -1,4 +1,4 @@
-/* newPrjt01 — 진로상담 공통 로직
+/* newPrjt02 — 진로상담 공통 로직
    저장소 · 설정 · AI 호출 · 마크다운 렌더 · md 저장 · 옵시디언 전송(스텁)
 
    의존: assets/auth.js (세션), assets/career-prompts.js (프롬프트 원문)
@@ -11,7 +11,7 @@
        tools/career_proxy.example.gs 의 PROXY_VERSION 과 맞춰 둔다.
        배포본이 낮으면 결과 화면에서 "프록시가 낡았다"고 알려 준다 —
        파일을 고쳐 놓고 재배포를 잊는 일이 반복돼 넣었다. */
-    var EXPECTED_PROXY_VERSION = '1.8.0';
+    var EXPECTED_PROXY_VERSION = '1.8.1';
 
     var CASES_KEY  = 'np_career_cases';
     var CONFIG_KEY = 'np_career_config';
@@ -809,7 +809,7 @@
             'case_id: ' + kase.id,
             'round: ' + round,
             'created: ' + new Date().toISOString(),
-            'source: newPrjt01 career',
+            'source: newPrjt02 career',
             'mock: ' + (mock ? 'true' : 'false'),
             'tags: [진로상담, ' + round + '차분석]',
             '---',

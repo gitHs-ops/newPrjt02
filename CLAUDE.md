@@ -25,7 +25,7 @@ start http://localhost:8940/tools/obsidian-check.html   # 옵시디언 연결 5�
 
 `init.ps1` 이 이 저장소의 테스트 러너다. 개별 테스트를 고르는 방식이 아니라
 전 항목 일괄 실행이며, `[FAIL]` 이 하나라도 있으면 exit 1 이다.
-`.claude/launch.json` 의 `newPrjt01-static` 은 같은 서버(`python -m http.server 8940`)를 띄운다.
+`.claude/launch.json` 의 `newPrjt02-static` 은 같은 서버(`python -m http.server 8940`)를 띄운다.
 
 ### 용어 (기록할 때 이 말을 쓴다)
 

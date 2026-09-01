@@ -2,7 +2,7 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "newPrjt01-static",
+      "name": "newPrjt02-static",
       "runtimeExecutable": "python",
       "runtimeArgs": ["-m", "http.server", "8940"],
       "port": 8940

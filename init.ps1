@@ -1,5 +1,5 @@
 ﻿<#
-    newPrjt01 — 세션 초기화 스크립트 (Windows PowerShell)
+    newPrjt02 — 세션 초기화 스크립트 (Windows PowerShell)
 
     init.sh 를 대체한다. 이 저장소는 빌드 단계가 없는 정적 HTML 앱이라
     설치할 의존성이 없고, 검증은 "파일이 제자리에 있고 형태가 온전한가"로 대체한다.

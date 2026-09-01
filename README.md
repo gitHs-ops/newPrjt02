@@ -1,4 +1,4 @@
-# newPrjt01
+# newPrjt02
 
 빌드 단계가 없는 **정적 HTML 앱** 두 벌.
 
@@ -127,7 +127,7 @@ Content-Type: text/plain;charset=utf-8      ← GAS 웹앱 CORS preflight 회피
 | 경로 | 쓰는 앱 | 동작 |
 |---|---|---|
 | `GET ?prompt=...&max_tokens=...` | careerTest | 기존 `career_proxy.gs` ver4.1 과 동일 — 고정 system, HTML 출력, 검색 없음 |
-| `POST {system, prompt, ...}` | newPrjt01 진로상담 | 프롬프트 전문 수신, md 출력, 웹검색 |
+| `POST {system, prompt, ...}` | newPrjt02 진로상담 | 프롬프트 전문 수신, md 출력, 웹검색 |
 
 **왜 GET 하나로 합칠 수 없나** — careerTest 는 프롬프트를 URL 쿼리에 싣는데,
 진로상담 1차 프롬프트는 **26KB**라 URL 인코딩하면 7만 자를 넘긴다. URL 길이 한계로 원천 불가다.

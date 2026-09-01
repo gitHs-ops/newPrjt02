@@ -18,7 +18,7 @@ param(
     [switch]$Start,
     [switch]$OpenBrowser,
     [switch]$Live,
-    [int]$Port = 8940
+    [int]$Port = 8941
 )
 
 $ErrorActionPreference = 'Stop'

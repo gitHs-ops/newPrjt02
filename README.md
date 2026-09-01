@@ -14,14 +14,14 @@
 .\init.ps1 -Start
 ```
 
-→ http://localhost:8940/
+→ http://localhost:8941/
 
 | 옵션 | 동작 |
 |---|---|
 | `.\init.ps1` | 검증만 수행 (63개 항목) |
 | `.\init.ps1 -Start` | 검증 후 로컬 서버 기동 |
 | `.\init.ps1 -Start -OpenBrowser` | 기동 후 브라우저까지 열기 |
-| `-Port 9000` | 포트 변경 (기본 8940) |
+| `-Port 9000` | 포트 변경 (기본 8941) |
 
 > ⚠ `init.ps1` 은 **UTF-8 BOM** 으로 저장해야 한다. BOM 이 없으면 Windows PowerShell 5.1 이
 > cp949 로 읽어 한글이 깨지고 파서 오류가 난다.
@@ -264,7 +264,7 @@ Apps Script는 개인 계정 기준 **실행 6분에서 강제 종료**된다 �
 문제가 생기면 **연결 실측 도구**로 어느 단계가 막혔는지 확인한다:
 
 ```bash
-start http://localhost:8940/tools/obsidian-check.html
+start http://localhost:8941/tools/obsidian-check.html
 ```
 
 도달 → CORS → 인증서 → 인증(preflight) → 쓰기 5단계를 순서대로 판정한다.

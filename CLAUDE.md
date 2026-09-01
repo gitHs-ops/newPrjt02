@@ -11,7 +11,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```powershell
 .\init.ps1                       # 검증만 (저장소 안의 텍스트만 본다, ~68개 항목)
 .\init.ps1 -Live                 # + 배포된 프록시 /exec 실호출로 버전 대조 (외부 연결 세션이면 필수)
-.\init.ps1 -Start                # 검증 후 http://localhost:8940/ 기동
+.\init.ps1 -Start                # 검증 후 http://localhost:8941/ 기동
 .\init.ps1 -Start -OpenBrowser   # 기동 + 브라우저
 .\init.ps1 -Port 9000 -Start     # 포트 변경
 ```
@@ -20,12 +20,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 python tools/build-prompts.py            # assets/prompts/*.txt -> assets/career-prompts.js 재생성
 python tools/check-report.py <파일.md>   # 저장된 보고서가 끝까지 나왔는지 검사 (exit 0/1)
 python tools/check-report.py --kind 2 <파일.md>   # 1차/2차 자동판별을 덮어씀
-start http://localhost:8940/tools/obsidian-check.html   # 옵시디언 연결 5단계 실측
+start http://localhost:8941/tools/obsidian-check.html   # 옵시디언 연결 5단계 실측
 ```
 
 `init.ps1` 이 이 저장소의 테스트 러너다. 개별 테스트를 고르는 방식이 아니라
 전 항목 일괄 실행이며, `[FAIL]` 이 하나라도 있으면 exit 1 이다.
-`.claude/launch.json` 의 `newPrjt02-static` 은 같은 서버(`python -m http.server 8940`)를 띄운다.
+`.claude/launch.json` 의 `newPrjt02-static` 은 같은 서버(`python -m http.server 8941`)를 띄운다.
 
 ### 용어 (기록할 때 이 말을 쓴다)
 
@@ -35,7 +35,7 @@ start http://localhost:8940/tools/obsidian-check.html   # 옵시디언 연결 5�
 |---|---|
 | `.\init.ps1` | **표준 시작 경로**(Standard startup path) — 검증만 |
 | `-Start` / `-Start -OpenBrowser` | 그 경로의 **기동 모드** |
-| `python -m http.server 8940` | **Standard start command** |
+| `python -m http.server 8941` | **Standard start command** |
 | 브라우저로 전 경로를 직접 밟아 확인하는 행위 | **실기동 검증** (기록 문구: "실기동 전 경로 통과") |
 
 `init.ps1` 은 저장소 텍스트와 배포본 버전만 본다. **화면 동작·시트 기록·옵시디언 쓰기는

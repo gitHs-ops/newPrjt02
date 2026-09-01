@@ -115,9 +115,9 @@ Apps Script 6분 한도 안에는 들어오지만 여유가 많지는 않다.
   - 잘림·모의응답·인코딩 사고를 잡는다. 보고서 경로를 고쳤으면 **반드시** 이걸로 확인
 - **프롬프트 재생성**: `python tools/build-prompts.py`
 - **Focused debug**
-  - 서버만: `python -m http.server 8940`
-  - 진로상담: http://localhost:8940/career.html (로그인 필요)
-  - 옵시디언 연결 진단: http://localhost:8940/tools/obsidian-check.html
+  - 서버만: `python -m http.server 8941`
+  - 진로상담: http://localhost:8941/career.html (로그인 필요)
+  - 옵시디언 연결 진단: http://localhost:8941/tools/obsidian-check.html
   - 프록시 배포 버전 확인: 브라우저로 `/exec` 열기 → `"version"` 확인
   - Apps Script 점검 순서: `test1_key` → `test2_search` → `test3_load`
     → `test4_careertest` → `test5a_sheetRaw`

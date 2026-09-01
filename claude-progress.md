@@ -13,8 +13,8 @@ Codex·OpenHands 등 어떤 코딩 에이전트도 쓸 수 있다. 어떤 에이
 - **원격**: `gitHs-ops/newPrjt02` (Private, 2026-09-02 신규). 이전 프로젝트의 커밋 이력은
   `gitHs-ops/newPrjt01` 저장소와 로컬 `C:\myPrjt01\newPrjt01` 폴더에 그대로 있다 —
   이 저장소는 `2b91000` 한 커밋에서 새로 시작했다
-- ⚠ **포트 8940 을 newPrjt01 과 공유한다.** 같은 오리진이라 브라우저 `localStorage`
-  (계정·사례·연결 설정)가 두 프로젝트에 걸쳐 공유된다. 아직 분리하지 않았다
+- **포트 8941** — newPrjt01(8940)과 분리했다(2026-09-02). 오리진이 달라져
+  브라우저 `localStorage`(계정·사례·연결 설정)가 서로 섞이지 않는다
 - **Standard startup path**: `.\init.ps1` (Windows PowerShell)
   - `.\init.ps1` — 검증만 / `.\init.ps1 -Start` — 검증 후 서버 기동 / `-OpenBrowser` — 브라우저까지 염
   - `.\init.ps1 -Live` — **배포된 프록시까지 확인**(권장). `local.endpoint.txt` 에 `/exec` URL 필요
@@ -26,7 +26,7 @@ Codex·OpenHands 등 어떤 코딩 에이전트도 쓸 수 있다. 어떤 에이
   프록시 예시 4종, **저장소 내 `sk-ant-` 키 문자열 검사**, 프롬프트 생성물 동기화,
   `home.html`→`career.html` 링크, JSON 파싱, `python`, 포트.
   **68개 항목 전부 통과해야 exit 0**
-- **Standard start command**: `python -m http.server 8940` → http://localhost:8940/
+- **Standard start command**: `python -m http.server 8941` → http://localhost:8941/
   (`.claude/launch.json` 의 `newPrjt02-static` 과 동일 포트)
 - **Current highest-priority unfinished feature**: 없음. 진로상담(`career-001`~`010`) 전부 **passing**
 - **Current blocker**: 없음. 남은 미착수는 보류된 `auth-006`(서버 인증)·`auth-007`(실제 OAuth)뿐

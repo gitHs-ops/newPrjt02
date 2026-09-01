@@ -39,7 +39,7 @@
     if (!cryptoAvailable()) {
       throw new Error(
         '이 페이지는 file:// 로 직접 열면 동작하지 않습니다. ' +
-        'init.ps1(또는 init.sh)로 로컬 서버를 띄운 뒤 http://localhost:8940/ 로 접속하세요.'
+        'init.ps1(또는 init.sh)로 로컬 서버를 띄운 뒤 http://localhost:8941/ 로 접속하세요.'
       );
     }
   }

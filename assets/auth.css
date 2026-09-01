@@ -495,3 +495,10 @@ input:disabled { opacity: .6; cursor: not-allowed; }
     font-weight: 700;
     color: var(--accent-primary);
 }
+
+/* 재작성 대기 카드 — 클릭 대상이 아님을 눈으로 구분한다 (2026-09-02) */
+.app-card-off {
+    opacity: .55;
+    cursor: default;
+    pointer-events: none;
+}

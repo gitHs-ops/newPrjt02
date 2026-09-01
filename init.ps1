@@ -60,21 +60,15 @@ foreach ($f in $appFiles) {
     if (Test-Path -LiteralPath $f -PathType Leaf) { Write-Ok $f } else { Write-Fail "$f 없음" }
 }
 
-# 2b) 앱 파일 — 진로상담 일습
+# 2b) 남아 있는 진로상담 자산 — 화면·JS 는 2026-09-02 폐기했다(paste-001~006 으로 재작성).
+#     프롬프트 원문과 도구는 그대로 쓴다. 이것들이 새 버전의 재료다.
 $careerFiles = @(
-    'career.html',
-    'career-step1.html',
-    'career-report1.html',
-    'career-step2.html',
-    'career-report2.html',
-    'assets\career.css',
-    'assets\career.js',
-    'assets\career-prompts.js',
     'assets\prompts\prompt-1st.txt',
     'assets\prompts\prompt-2nd.txt',
     'assets\prompts\input-1st.txt',
     'assets\prompts\input-2nd.txt',
     'tools\build-prompts.py',
+    'tools\check-report.py',
     'tools\career_proxy.example.gs',
     'tools\obsidian-check.html'
 )
@@ -82,10 +76,21 @@ foreach ($f in $careerFiles) {
     if (Test-Path -LiteralPath $f -PathType Leaf) { Write-Ok $f } else { Write-Fail "$f 없음" }
 }
 
+# 2c) 폐기한 코드가 되살아나 있지 않은가 —
+#     "일부만 되살려 쓰기" 는 새 방식과 옛 방식이 섞인 상태를 만든다. 새로 쓰기로 한 결정을 집행한다.
+$retired = @('career.html', 'career-step1.html', 'career-report1.html',
+             'career-step2.html', 'career-report2.html',
+             'assets\career.js', 'assets\career.css', 'assets\career-prompts.js')
+$revived = @($retired | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf })
+if ($revived.Count -eq 0) {
+    Write-Ok "폐기한 진로상담 코드 없음 (복사·붙여넣기 방식으로 새로 작성 예정)"
+} else {
+    Write-Note "참고: 폐기 대상이 다시 있음 — $($revived -join ', ')"
+    Write-Note "      새로 작성한 것이면 이 검사와 아래 5b/5c 를 새 파일에 맞게 다시 쓸 것"
+}
+
 # 3) HTML 무결성 — 비어 있지 않고 <html> 을 포함하는가
-foreach ($f in @('index.html', 'login.html', 'signup.html', 'home.html', 'error.html',
-                 'career.html', 'career-step1.html', 'career-report1.html',
-                 'career-step2.html', 'career-report2.html')) {
+foreach ($f in @('index.html', 'login.html', 'signup.html', 'home.html', 'error.html')) {
     if (-not (Test-Path -LiteralPath $f -PathType Leaf)) { continue }
     $content = Get-Content -LiteralPath $f -Raw -Encoding UTF8
     if ($content.Length -gt 0 -and $content -match '(?i)<html') {
@@ -131,72 +136,11 @@ if (Test-Path -LiteralPath 'assets\auth.js' -PathType Leaf) {
     }
 }
 
-# 5b) 진로상담 페이지가 공통 자산을 참조하는가
-foreach ($f in @('career.html', 'career-step1.html', 'career-report1.html',
-                 'career-step2.html', 'career-report2.html')) {
-    if (-not (Test-Path -LiteralPath $f -PathType Leaf)) { continue }
-    $content = Get-Content -LiteralPath $f -Raw -Encoding UTF8
-    $hasCss     = $content -match 'assets/career\.css'
-    $hasJs      = $content -match 'assets/career\.js'
-    $hasPrompts = $content -match 'assets/career-prompts\.js'
-    $hasAuth    = $content -match 'assets/auth\.js'
-    if ($hasCss -and $hasJs -and $hasPrompts -and $hasAuth) {
-        Write-Ok "$f 가 career.css / career.js / career-prompts.js / auth.js 를 참조"
-    } else {
-        Write-Fail "$f 의 공통 자산 참조 누락 (css=$hasCss js=$hasJs prompts=$hasPrompts auth=$hasAuth)"
-    }
-}
-
-# 5c) career.js 의 공개 API 가 살아 있는가
-if (Test-Path -LiteralPath 'assets\career.js' -PathType Leaf) {
-    $cjs = Get-Content -LiteralPath 'assets\career.js' -Raw -Encoding UTF8
-    $needed = @('createCase', 'listCases', 'updateCase', 'deleteCase',
-                'buildUserMessage1', 'buildUserMessage2', 'callAI',
-                'mdToHtml', 'downloadMd', 'sendToObsidian', 'mountChrome',
-                'CHOICES', 'entryYearFor', 'bindQuickPick', 'fillSelect')
-    $missing = @()
-    foreach ($fn in $needed) {
-        if ($cjs -notmatch [regex]::Escape($fn)) { $missing += $fn }
-    }
-    if ($missing.Count -eq 0) {
-        Write-Ok "career.js 공개 API $($needed.Count)종 확인"
-    } else {
-        Write-Fail "career.js 에서 누락된 API: $($missing -join ', ')"
-    }
-
-    # AI 호출이 실제 네트워크 경로를 갖는가 (프롬프트 복사 방식으로 되돌아가지 않았는지)
-    if ($cjs -match 'fetch\(endpoint') {
-        Write-Ok "AI 호출 경로(fetch) 존재"
-    } else {
-        Write-Fail "career.js 에 AI 호출용 fetch 가 보이지 않음"
-    }
-
-    # 옵시디언 전송이 실제 PUT 경로를 갖는가 (2026-09-01 연결 실측 통과 후 구현됨)
-    if ($cjs -match "method:\s*'PUT'" -and $cjs -match 'testObsidian' -and $cjs -match 'OBSIDIAN_PENDING_MSG') {
-        Write-Ok "옵시디언 전송 구현 (PUT + 연결 테스트 + 미설정 가드)"
-    } else {
-        Write-Fail "career.js 의 옵시디언 전송 경로가 불완전 — PUT / testObsidian / 미설정 가드 확인"
-    }
-
-    # 공식자료 웹검색 지시가 요청에 실려 나가는가 (프롬프트가 요구하는 전제)
-    if ($cjs -match 'web_search:' -and $cjs -match 'search_max_uses') {
-        Write-Ok "요청에 웹검색 지시(web_search / search_max_uses) 포함"
-    } else {
-        Write-Fail "career.js 가 웹검색 지시를 보내지 않음 — 확인 불가 응답이 대량 발생한다"
-    }
-
-    if ($cjs -match 'effort') {
-        Write-Ok "요청에 effort(사고 깊이) 포함 — 실행시간 제어 경로 존재"
-    } else {
-        Write-Fail "career.js 가 effort 를 보내지 않음 — 프록시 실행시간을 제어할 수 없다"
-    }
-
-    if ($cjs -match 'OFFICIAL_DOMAINS' -and $cjs -match 'renderSources') {
-        Write-Ok "공식 도메인 목록 · 출처 표시 경로 존재"
-    } else {
-        Write-Fail "career.js 에 OFFICIAL_DOMAINS / renderSources 가 없음"
-    }
-}
+# 5c) career.js 검사는 2026-09-02 제거했다.
+#     복사·붙여넣기 방식으로 새로 쓰기로 하면서 파일 자체를 폐기했기 때문이다.
+#     ⚠ 새 클라이언트를 만들면 여기에 그에 맞는 검사를 다시 넣을 것 —
+#       비워 둔 채로 두면 하네스가 앱을 전혀 보지 않는 상태가 된다.
+#       최소한: 프롬프트 전문 복사 경로 · 붙여넣은 md 저장 경로 · 완결성 검사 호출.
 
 # 5c-2) 프록시 참고 구현이 웹검색을 켜는가
 if (Test-Path -LiteralPath 'tools\career_proxy.example.gs' -PathType Leaf) {
@@ -230,17 +174,15 @@ if (Test-Path -LiteralPath 'tools\career_proxy.example.gs' -PathType Leaf) {
         Write-Fail "MAX_CONTINUATIONS 가 너무 큼 — Apps Script 6분 한도를 넘겨 응답 없이 매달린다"
     }
 
-    # 프록시 버전과 클라이언트 기대 버전이 어긋나면 재배포를 잊었을 때 알 방법이 없다
+    # 프록시 버전 — 클라이언트(career.js) 쪽 대조는 2026-09-02 사라졌다.
+    #   복사·붙여넣기로 바꾸면서 클라이언트가 프록시를 부르지 않는다.
+    #   .gs 는 careerTest 와 구글시트 기록 때문에 남아 있으므로, 배포본 대조(-Live)는 계속 쓴다.
     $pv = ''
     if ($gs -match "PROXY_VERSION\s*=\s*'([0-9.]+)'") { $pv = $Matches[1] }
-    $cv = ''
-    if ((Test-Path -LiteralPath 'assets\career.js') -and
-        ((Get-Content -LiteralPath 'assets\career.js' -Raw -Encoding UTF8) -match
-         "EXPECTED_PROXY_VERSION\s*=\s*'([0-9.]+)'")) { $cv = $Matches[1] }
-    if ($pv -and $cv -and ($pv -eq $cv)) {
-        Write-Ok "프록시 버전 일치 ($pv)"
+    if ($pv) {
+        Write-Ok "프록시 버전 확인 ($pv) — 이제 careerTest·시트 기록 전용이다"
     } else {
-        Write-Fail "프록시 버전 불일치 — .gs=$pv / career.js 기대=$cv (둘을 같이 올릴 것)"
+        Write-Fail "career_proxy.example.gs 에서 PROXY_VERSION 을 찾지 못함"
     }
 
     # 5c-4) 실제 배포본 확인 (-Live)
@@ -346,37 +288,34 @@ if ($execHits.Count -eq 0) {
     Write-Fail "소스에 /exec URL 이 박혀 있음: $($execHits -join ', ') — 공개 배포 시 누구나 호출한다. local.endpoint.txt 로 옮길 것"
 }
 
-# 5d) 프롬프트 생성물이 원문과 동기화되어 있는가
-if ((Test-Path -LiteralPath 'assets\career-prompts.js' -PathType Leaf) -and
-    (Test-Path -LiteralPath 'tools\build-prompts.py' -PathType Leaf)) {
-    $gen = Get-Item -LiteralPath 'assets\career-prompts.js'
-    $stale = @()
-    foreach ($p in @('prompt-1st.txt', 'prompt-2nd.txt', 'input-1st.txt', 'input-2nd.txt')) {
-        $src = Join-Path 'assets\prompts' $p
-        if (-not (Test-Path -LiteralPath $src -PathType Leaf)) { continue }
-        if ((Get-Item -LiteralPath $src).LastWriteTime -gt $gen.LastWriteTime) { $stale += $p }
-    }
-    if ($stale.Count -eq 0) {
-        Write-Ok "career-prompts.js 가 프롬프트 원문보다 최신"
-    } else {
-        Write-Fail "프롬프트 원문이 더 최신임 ($($stale -join ', ')) — python tools/build-prompts.py 실행 필요"
-    }
-
-    $gjs = Get-Content -LiteralPath 'assets\career-prompts.js' -Raw -Encoding UTF8
-    if ($gjs -match 'CareerPrompts' -and $gjs.Length -gt 20000) {
-        Write-Ok "career-prompts.js 에 프롬프트 원문이 담겨 있음 ($([int]($gjs.Length/1024))KB)"
-    } else {
-        Write-Fail "career-prompts.js 가 비었거나 CareerPrompts 전역이 없음"
-    }
+# 5d) 프롬프트 원문이 살아 있는가 —
+#     생성물(career-prompts.js) 대조는 2026-09-02 제거했다. 클라이언트를 새로 쓰는 중이라
+#     생성물이 아직 없다. 원문 자체는 이 프로젝트의 핵심 자산이므로 크기까지 본다.
+$pTotal = 0
+$pMissing = @()
+foreach ($f in @('prompt-1st.txt', 'prompt-2nd.txt', 'input-1st.txt', 'input-2nd.txt')) {
+    $src = Join-Path 'assets\prompts' $f
+    if (Test-Path -LiteralPath $src -PathType Leaf) {
+        $pTotal += (Get-Item -LiteralPath $src).Length
+    } else { $pMissing += $f }
+}
+if ($pMissing.Count -eq 0 -and $pTotal -gt 30000) {
+    Write-Ok "프롬프트 원문 4종 존재 ($([int]($pTotal/1024))KB)"
+} elseif ($pMissing.Count -gt 0) {
+    Write-Fail "프롬프트 원문 누락: $($pMissing -join ', ')"
+} else {
+    Write-Fail "프롬프트 원문이 비정상적으로 작다 ($pTotal bytes) — 내용이 날아갔는지 확인할 것"
 }
 
-# 5e) 로그인 성공 페이지가 진로상담으로 연결되는가
+# 5e) 로그인 성공 페이지가 죽은 링크를 갖고 있지 않은가 —
+#     진로상담 화면을 폐기했으므로, 예전 진입 링크가 남아 있으면 404 로 간다.
+#     새 화면을 만들면 이 검사를 "새 화면으로 연결되는가" 로 다시 뒤집을 것.
 if (Test-Path -LiteralPath 'home.html' -PathType Leaf) {
     $homeHtml = Get-Content -LiteralPath 'home.html' -Raw -Encoding UTF8
-    if ($homeHtml -match 'career\.html') {
-        Write-Ok "home.html 에서 진로상담(career.html) 진입 링크 확인"
+    if ($homeHtml -match 'href="career[-.]') {
+        Write-Fail "home.html 에 폐기된 진로상담 화면 링크가 남아 있음 — 404 로 간다"
     } else {
-        Write-Fail "home.html 에 career.html 링크가 없음"
+        Write-Ok "home.html 에 죽은 진로상담 링크 없음"
     }
 }
 
@@ -498,7 +437,6 @@ Write-Host "    python -m http.server $Port" -ForegroundColor Yellow
 Write-Host "    http://localhost:$Port/           첫 화면" -ForegroundColor DarkGray
 Write-Host "    http://localhost:$Port/login.html 로그인" -ForegroundColor DarkGray
 Write-Host "    http://localhost:$Port/signup.html 회원가입" -ForegroundColor DarkGray
-Write-Host "    http://localhost:$Port/career.html 진로상담 (로그인 필요)" -ForegroundColor DarkGray
 
 if (-not $Start) {
     Write-Host ""

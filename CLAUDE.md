@@ -12,16 +12,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 앱이 조립한 프롬프트를 사용자가 복사 → 원하는 AI 화면에 붙여넣기 → 받은 md 를
 앱에 되돌려 넣기. API 키·프록시 배포·요금·Apps Script 6분 한도가 전부 사라진다.
 
-- 계획: `feature_list.json` 의 `paste-001`~`006` (전부 `not_started`)
-- **코드는 아직 프록시 방식 그대로다.** 아래 Architecture 의 "AI 프록시" 절은
-  현재 코드를 정확히 설명하지만, 곧 은퇴할 경로를 설명하는 것이다
-- **선행 결정은 `paste-006`** (프록시 제거 vs 선택 기능으로 유지)
+**진로상담 화면·JS 는 2026-09-02 전부 폐기했다.** 지금 이 저장소에 진로상담 앱은 없다.
+남은 것은 로그인 데모 + 프롬프트 원문 + 도구뿐이다.
 
-⚠ `init.ps1` 이 지금 **정반대를 강제한다** — 171줄의 `fetch(endpoint)` 검사가
-*"프롬프트 복사 방식으로 되돌아가지 않았는지"* 를 본다. 프록시를 강제하는 검사가
-12건 더 있다. 이걸 정리하지 않으면 새 방향으로 바꾸는 순간 검증이 실패한다.
-**느슨하게 만들지 말고 방향을 돌릴 것** — `MIRROR_TO_SHARED` 때처럼
-"있는가"를 "꺼져 있는가"로 뒤집는 방식이다.
+- 계획: `feature_list.json` 의 `paste-001`~`006` (전부 `not_started`)
+- 폐기한 기능은 `retired` 상태로 두고 **evidence 를 남겼다** — 다시 만들 때
+  무엇을 만족해야 하는지가 거기 있다. 지우지 말 것
+- `init.ps1` 의 클라이언트 검사(`career.js` API·`fetch(endpoint)`·자산 참조)는 함께 제거했다.
+  **새 클라이언트를 만들면 그에 맞는 검사를 반드시 다시 넣을 것** — 비워 둔 채로 두면
+  하네스가 앱을 전혀 보지 않는 상태가 된다 (init.ps1 5c 주석에 적어 뒀다)
+
+**프록시(`.gs`)와 구글시트는 지우지 않았다.** 진로상담 앱이 부르지 않을 뿐,
+`careerTest` 가 같은 Apps Script 배포의 `doGet` 을 계속 쓴다.
+`.gs` 검사와 `-Live` 도 그대로 유지한다.
 
 ## Commands
 
@@ -62,23 +65,23 @@ start http://localhost:8941/tools/obsidian-check.html   # 옵시디언 연결 5�
 
 ### 정적 앱 (빌드 없음, 서버 없음)
 
-페이지는 전역 객체 두 개에 의존한다. 새 페이지도 같은 방식으로 붙인다.
+지금 남아 있는 것은 **로그인 데모뿐**이다. 진로상담 화면·JS 는 폐기했다.
+새 페이지는 아래 방식으로 붙인다.
 
 - `assets/auth.js` → `window.Auth` — PBKDF2-SHA256(10만회)+솔트 해싱, `np_users`/`np_session`,
   `requireAuth()` 가드. **Web Crypto 를 쓰므로 `file://` 로 열면 동작하지 않는다.**
-- `assets/career.js` → `window.Career` (~1,400줄) — 사례 저장소(`np_career_cases`),
-  설정(`np_career_config`), 프롬프트 조립, `callAI`, 마크다운 렌더, md 저장,
-  옵시디언 `PUT`, 공통 UI(`mountChrome`). 상태는 전부 `localStorage`.
-- `assets/career-prompts.js` → `window.CareerPrompts` — **자동 생성물. 직접 고치지 말 것.**
-  원본은 `assets/prompts/*.txt` 이고 `tools/build-prompts.py` 로 재생성한다.
-  (`init.ps1` 이 원문 mtime 이 생성물보다 최신이면 검증을 실패시킨다.)
+- ~~`assets/career.js` → `window.Career`~~ — **폐기됨(2026-09-02).** git 이력에 있다
+- ~~`assets/career-prompts.js`~~ — 폐기됨. 생성기 `tools/build-prompts.py` 와
+  원본 `assets/prompts/*.txt`(43KB)는 **그대로 남겼다** — 새 버전의 재료다
 
-흐름: `index → login → home` → (진로상담) `career → career-step1 → career-report1 →
-career-step2 → career-report2`.
+흐름: `index → login → home`. 진로상담 경로는 `paste-001`~`006` 으로 새로 만든다.
 
-### AI 프록시 (이 저장소 밖에서 돌아간다)
+### AI 프록시 (이 저장소 밖에서 돌아간다 — 이제 careerTest 전용)
 
-브라우저는 API 키를 갖지 않는다. Apps Script 웹앱 하나가 **두 앱을 함께** 받는다.
+⚠ **진로상담 앱은 더 이상 이 경로를 쓰지 않는다**(2026-09-02 복사·붙여넣기로 전환).
+아래는 `careerTest` 와 구글시트 기록을 위해 **남겨 둔** 인프라 설명이다.
+
+Apps Script 웹앱 하나가 **두 앱을 함께** 받는다.
 
 | 경로 | 앱 | 비고 |
 |---|---|---|

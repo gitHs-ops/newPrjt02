@@ -82,7 +82,8 @@
         <div class="btn-row">
             <button type="button" class="btn btn-primary grow" id="copyBtn">프롬프트 복사</button>
             <button type="button" class="btn btn-ghost" id="previewBtn">원문 보기</button>
-            <a class="btn btn-ghost" href="https://claude.ai/new" target="_blank" rel="noopener noreferrer">Claude 열기</a>
+            <select id="aiService" class="quick" style="max-width:150px;margin-bottom:0" title="열 AI 서비스 선택"></select>
+            <a class="btn btn-ghost" id="aiOpenBtn" href="https://claude.ai/new" target="_blank" rel="noopener noreferrer">AI 화면 열기</a>
         </div>
         <p class="size" id="sizeInfo" style="margin-top:10px">프롬프트를 준비하는 중…</p>
         <div class="mono-box" id="preview" hidden></div>
@@ -91,7 +92,7 @@
     <div class="btn-row">
         <a class="btn btn-primary grow" id="nextBtn" href="#">2차 결과 붙여넣기로 →</a>
         <a class="btn btn-ghost" id="backBtn" href="#">← 1차 결과</a>
-        <a class="btn btn-ghost" href="career.html">사례 목록</a>
+        <a class="btn btn-ghost" href="career.html">처음으로</a>
     </div>
 
 </div>
@@ -290,6 +291,24 @@
             Career.toast(e.message, 'error');
         });
     });
+
+    /* AI 화면 선택 — 마지막으로 고른 서비스를 기억한다. 자동 입력은 하지 않는다. */
+    (function initAiPicker() {
+        var sel = document.getElementById('aiService');
+        var btn = document.getElementById('aiOpenBtn');
+        Career.AI_SERVICES.forEach(function (svc) {
+            var o = document.createElement('option');
+            o.value = svc.key; o.textContent = svc.label;
+            sel.appendChild(o);
+        });
+        function apply(svc) { btn.href = svc.url; }
+        sel.value = Career.getAiService().key;
+        apply(Career.getAiService());
+        sel.addEventListener('change', function () {
+            Career.setAiService(sel.value);
+            apply(Career.AI_SERVICES.filter(function (s) { return s.key === sel.value; })[0]);
+        });
+    })();
 
     rebuild();
 })();

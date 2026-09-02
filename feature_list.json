@@ -513,14 +513,20 @@
       "area": "paste",
       "title": "AI 화면으로 바로 건너가기",
       "user_visible_behavior": "[프롬프트 복사] 옆에서 Claude·ChatGPT 등 사용할 AI 화면을 새 탭으로 연다. 어디에 붙여넣어야 하는지 헤매지 않는다.",
-      "status": "not_started",
+      "status": "passing",
       "verification": [
-        "버튼을 누르면 선택한 AI 서비스가 새 탭에서 열린다.",
-        "어떤 서비스를 쓸지 [연결 설정]에서 고를 수 있다.",
-        "클립보드에는 이미 프롬프트가 담겨 있다(paste-001 과 연동)."
+        "career-step1.html · career-step2.html 의 프롬프트 패널에 드롭다운(Claude·ChatGPT·Gemini·Perplexity)이 있고, 고른 서비스가 새 탭으로 열린다.",
+        "선택은 localStorage(np_ai_service)에 남아 다른 화면·다음 방문에서도 유지된다.",
+        "여는 것은 링크뿐이다 — 프롬프트 자동 입력은 하지 않는다(각 서비스 약관·로그인 문제).",
+        "화면 안 인라인 드롭다운으로 해결한다 — 별도 [연결 설정] 화면을 새로 만들지 않는다(그 문구 자체가 stale-word 검사 대상이다)."
       ],
-      "evidence": [],
-      "notes": "링크만 여는 것이지 자동 입력이 아니다 — 자동 입력은 각 서비스 약관·로그인 문제로 하지 않는다."
+      "evidence": [
+        "2026-09-02 실기동 — career-step1.html 에서 드롭다운 옵션 4종(Claude/ChatGPT/Gemini/Perplexity) 확인, 기본 선택 Claude, 버튼 href=https://claude.ai/new",
+        "ChatGPT 로 전환 → 버튼 href 가 https://chatgpt.com/ 로 즉시 바뀌고 localStorage.np_ai_service='chatgpt' 로 저장됨",
+        "career-step2.html 로 이동 후 선택이 'chatgpt' 로 그대로 유지됨을 확인 — 화면을 넘나들며 다시 고르지 않아도 된다",
+        "init.ps1 → 'AI 서비스 목록 존재' · '프롬프트 복사 화면에 AI 서비스 선택 드롭다운 존재 (2화면)' [OK]"
+      ],
+      "notes": "기존에 있던 'Claude 열기' 고정 링크를 선택 드롭다운으로 교체했다 — Claude 하나로 고정돼 있던 상태가 이 기능의 미완성 부분이었다. 원래 계획에 있던 '[연결 설정]에서 고를 수 있다'는 옛 프록시 시절 UI 개념이라 실제로는 화면 안 인라인 드롭다운으로 대체했다 — init.ps1 의 stale-word 검사가 '연결 설정' 문구 자체를 금지한다."
     },
     {
       "id": "paste-005",

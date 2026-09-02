@@ -159,7 +159,8 @@ if (Test-Path -LiteralPath 'assets\career.js' -PathType Leaf) {
                 'mdToHtml', 'listCases', 'createCase', 'updateCase', 'deleteCase',
                 'downloadMd', 'downloadCombined', 'entryYearFor', 'mountChrome',
                 'FIELDS_2_EXP', 'FIELDS_2_SCHOOL', 'checkReport', 'detectKind',
-                'bindQuickPick', 'SAMPLE_1', 'SAMPLE_2', 'QUICK_1', 'QUICK_2_EXP')
+                'bindQuickPick', 'SAMPLE_1', 'SAMPLE_2', 'QUICK_1', 'QUICK_2_EXP',
+                'AI_SERVICES', 'getAiService', 'setAiService')
     $missing = @()
     foreach ($fn in $needed) { if ($cjs -notmatch [regex]::Escape($fn)) { $missing += $fn } }
     if ($missing.Count -eq 0) {
@@ -189,6 +190,25 @@ if (Test-Path -LiteralPath 'assets\career.js' -PathType Leaf) {
         Write-Ok "클립보드 대체 경로 존재 (clipboard API + execCommand)"
     } else {
         Write-Fail "career.js 에 클립보드 대체 경로가 없음 — 막힌 환경에서 복사가 실패한다"
+    }
+
+    # AI 화면 선택 (paste-004) — Claude 하나로 고정하지 않았는가.
+    #   ⚠ "[연결 설정]" 화면을 다시 만들면 안 된다 — 그 문구는 stale-word 검사가 잡는다.
+    #   선택은 화면 안 인라인 드롭다운으로 해결한다.
+    if ($cjs -match 'AI_SERVICES' -and $cjs -match 'chatgpt' -and $cjs -match 'gemini') {
+        Write-Ok "AI 서비스 목록 존재 (Claude 고정이 아니라 선택 가능)"
+    } else {
+        Write-Fail "career.js 에 AI_SERVICES 목록이 없음 — Claude 로 고정돼 있다"
+    }
+    $noPicker = @()
+    foreach ($f in @('career-step1.html', 'career-step2.html')) {
+        if ((Test-Path -LiteralPath $f -PathType Leaf) -and
+            ((Get-Content -LiteralPath $f -Raw -Encoding UTF8) -notmatch 'id="aiService"')) { $noPicker += $f }
+    }
+    if ($noPicker.Count -eq 0) {
+        Write-Ok "프롬프트 복사 화면에 AI 서비스 선택 드롭다운 존재 (2화면)"
+    } else {
+        Write-Fail "AI 서비스 선택이 없는 화면: $($noPicker -join ', ')"
     }
 
     # 입력 보조 — 반복 입력 부담을 줄이는 장치들. newPrjt01 에서 가져왔다.

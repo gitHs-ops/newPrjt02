@@ -268,6 +268,31 @@
         });
     }
 
+    /* ------------------------------------------------------ AI 화면 선택 */
+
+    var AI_SERVICE_KEY = 'np_ai_service';
+
+    /* 링크만 연다 — 자동 입력은 하지 않는다(각 서비스 약관·로그인 문제).
+       url 은 새 대화창을 바로 여는 주소로 고른다. */
+    var AI_SERVICES = [
+        { key: 'claude',     label: 'Claude',     url: 'https://claude.ai/new' },
+        { key: 'chatgpt',    label: 'ChatGPT',    url: 'https://chatgpt.com/' },
+        { key: 'gemini',     label: 'Gemini',     url: 'https://gemini.google.com/app' },
+        { key: 'perplexity', label: 'Perplexity', url: 'https://www.perplexity.ai/' }
+    ];
+
+    /** 교사가 마지막으로 고른 AI 서비스. 화면마다 다시 고르지 않도록 기억한다. */
+    function getAiService() {
+        var saved = localStorage.getItem(AI_SERVICE_KEY);
+        var hit = AI_SERVICES.filter(function (s) { return s.key === saved; });
+        return hit.length ? hit[0] : AI_SERVICES[0];
+    }
+    function setAiService(key) {
+        if (AI_SERVICES.some(function (s) { return s.key === key; })) {
+            localStorage.setItem(AI_SERVICE_KEY, key);
+        }
+    }
+
     /* ---------------------------------------------------------- 클립보드 */
 
     /**
@@ -609,6 +634,11 @@
 
         /* 복사 */
         copyText: copyText,
+
+        /* AI 화면 선택 */
+        AI_SERVICES: AI_SERVICES,
+        getAiService: getAiService,
+        setAiService: setAiService,
 
         /* 저장소 */
         listCases: listCases,

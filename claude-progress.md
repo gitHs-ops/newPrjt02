@@ -28,7 +28,8 @@ Codex·OpenHands 등 어떤 코딩 에이전트도 쓸 수 있다. 어떤 에이
   **68개 항목 전부 통과해야 exit 0**
 - **Standard start command**: `python -m http.server 8941` → http://localhost:8941/
   (`.claude/launch.json` 의 `newPrjt02-static` 과 동일 포트)
-- **Current highest-priority unfinished feature**: **`paste-004`** (AI 화면 선택) — 남은 것 중 가장 작다.
+- **Current highest-priority unfinished feature**: 없음. 남은 3건은 사용자 판단 대기 항목뿐이다
+  (`paste-006` 형식상 정리, `auth-006`·`auth-007` 보류).
   `in_progress` 는 0건이다.
 - **Current blocker**: 없음. `init.ps1` 이 새 방향을 막던 문제는 2026-09-02 해소했다
   (클라이언트 검사 제거 + 폐기 코드 부활 감시로 전환)
@@ -1055,3 +1056,81 @@ Session 007 이 문서에만 적어 둔 방향을 실제로 집행한 세션이�
 `paste-004`(AI 화면 선택 — 지금은 Claude 링크 고정). 그 외에는 사용자 판단이 필요한
 것들뿐이다(옵시디언 복원 여부, `auth-006/007`).
 그리고 **클립보드 바이트 단위 일치**는 여전히 사람이 한 번 붙여넣어야 닫힌다.
+
+### Session 014 — 내비게이션 정리 · AI 화면 선택 (`paste-004`)
+
+사용자 지시 3건.
+
+#### 1. "사례 목록" → "처음으로"
+
+`career-step1/2.html`·`career-report1/2.html` 하단의 `career.html` 로 돌아가는 링크
+문구를 **"사례 목록"에서 "처음으로"** 로 바꿨다. 대상(`career.html`)은 그대로다 —
+문구만 정정했다.
+
+#### 2. `index.html` → `career.html` 직행 (home.html 스킵)
+
+사용자가 로그인 성공 화면(`home.html`) 스크린샷을 첨부하며 "이 페이지는 불필요하니
+`index.html` 에서 `career.html` 로 바로 가게 해 달라"고 요청했다.
+
+가장 좁고 안전한 해석을 택했다 — **`index.html` 의 [시작하기] 버튼 하나만** 바꿨다.
+`login.html` 의 로그인 성공 리다이렉트(→ `home.html`)는 그대로 뒀다.
+
+- `index.html`: `href="login.html"` → `href="career.html"`.
+  `career.html` 은 `Career.mountChrome()` → `Auth.requireAuth()` 로 이미 로그인
+  가드가 걸려 있어, 세션이 없으면 자동으로 `login.html` 로 보낸다 — 별도 분기가 필요 없다
+- `career.html` 하단의 `href="home.html">홈으로</a>` 도 `href="index.html">처음으로</a>`
+  로 바꿔 위 1번과 문구를 통일했다
+
+**결과 — 두 가지 경로**
+
+| 상황 | 흐름 |
+|---|---|
+| **로그인된 상태로 재방문** (대부분의 실사용) | `index.html` → `career.html` **직행**. `home.html` 을 전혀 거치지 않는다 |
+| **세션이 없는 첫 로그인** | `index.html` → `career.html`(가드에 걸림) → `login.html` → 로그인 성공 →
+`home.html`(기존 그대로) → 카드 클릭 → `career.html` |
+
+`home.html` 파일 자체와 `auth-002`·`auth-003`·`auth-005`(로그인 성공 시 `home.html`
+로 이동) 는 **손대지 않았다** — 그 기능은 여전히 사실이고 실제로 그렇게 동작한다.
+전면 개편(로그인 성공 리다이렉트 자체를 `career.html` 로 바꾸는 것)은 `auth-002/003/005`
+세 기능의 검증 문구를 다시 쓰는 더 큰 작업이라, 사용자가 명시한 범위를 넘어선다고
+판단해 하지 않았다. 필요하면 다음 세션에서 별도로 결정할 것.
+
+#### 3. `paste-004` — AI 화면 선택 드롭다운
+
+사용자 질문: *"paste-004는 해결된거 아닌가요?"* 확인해 보니 **절반만** 되어 있었다 —
+`career-step1/2.html` 에 "Claude 열기" 링크는 있었지만, **Claude 하나로 고정**돼 있었다.
+기능 정의의 세 번째 검증 항목("어떤 서비스를 쓸지 고를 수 있다")이 비어 있었다.
+
+- `career.js` 에 `AI_SERVICES`(Claude·ChatGPT·Gemini·Perplexity) ·
+  `getAiService()`/`setAiService()` 추가. 마지막 선택은 `localStorage`
+  (`np_ai_service`)에 남는다
+- `career-step1/2.html` 의 고정 링크를 **드롭다운 + 여는 버튼**으로 교체
+
+**원래 계획에 있던 "[연결 설정]에서 고를 수 있다"는 만들지 않았다.** 그건 폐기한
+프록시 시절 UI 개념이고, 애초에 `init.ps1` 의 stale-word 검사가 "연결 설정"이라는
+문구 자체를 화면에서 금지한다(Session 012). 대신 화면 안 인라인 드롭다운으로
+해결했다 — 더 짧고, 이 방식의 원칙(설정 화면 없이 그 자리에서 끝낸다)에도 맞는다.
+
+여전히 **링크만 연다 — 자동 입력은 하지 않는다**(각 서비스 약관·로그인 문제).
+
+#### Verification run
+
+- `career.html` 세션 클리어 후 접속 → `login.html` 로 정확히 리다이렉트됨을 확인
+- 로그인 후 `index.html` → [시작하기] 클릭 → `career.html` 직행 확인 (`home.html` 미경유)
+- AI 선택: 기본 Claude(`href=https://claude.ai/new`) → ChatGPT 전환 시 버튼 href 가
+  `https://chatgpt.com/` 로 즉시 바뀌고 `localStorage.np_ai_service='chatgpt'` 저장,
+  `career-step2.html` 로 넘어가도 선택이 그대로 유지됨
+- `.\init.ps1` → **84개 항목 전부 `[OK]`, exit 0** (82 → 84,
+  `career.js` 공개 API 23 → 26종)
+
+#### 상태
+
+`passing` **17** · `retired` 9 · `not_started` **3** · `in_progress` 0 (총 29)
+
+#### 남은 것
+
+- **클립보드 바이트 단위 일치** — 여전히 사람이 한 번 실제 AI 화면에 붙여넣어야 닫힌다
+- `paste-006`(형식상 남은 항목 — 실질은 Session 008 에서 이미 집행됨. 상태만 정리하면 됨)
+- 보류: `auth-006`(서버 인증) · `auth-007`(실제 OAuth)
+- (판단 대기) 로그인 성공 리다이렉트 자체를 `home.html` 대신 `career.html` 로 완전히
+  바꿀지 — 하면 `auth-002/003/005` 세 기능의 검증 문구를 함께 고쳐야 한다

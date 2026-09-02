@@ -29,7 +29,7 @@ Codex·OpenHands 등 어떤 코딩 에이전트도 쓸 수 있다. 어떤 에이
 - **Standard start command**: `python -m http.server 8941` → http://localhost:8941/
   (`.claude/launch.json` 의 `newPrjt02-static` 과 동일 포트)
 - **Current highest-priority unfinished feature**: 없음. 남은 3건은 사용자 판단 대기 항목뿐이다
-  (`paste-006` 형식상 정리, `auth-006`·`auth-007` 보류).
+  (`paste-006` 형식상 정리, `auth-006`·`auth-007` 보류). `home.html` 은 2026-09-02 폐기했다(Session 015).
   `in_progress` 는 0건이다.
 - **Current blocker**: 없음. `init.ps1` 이 새 방향을 막던 문제는 2026-09-02 해소했다
   (클라이언트 검사 제거 + 폐기 코드 부활 감시로 전환)
@@ -1134,3 +1134,55 @@ Session 007 이 문서에만 적어 둔 방향을 실제로 집행한 세션이�
 - 보류: `auth-006`(서버 인증) · `auth-007`(실제 OAuth)
 - (판단 대기) 로그인 성공 리다이렉트 자체를 `home.html` 대신 `career.html` 로 완전히
   바꿀지 — 하면 `auth-002/003/005` 세 기능의 검증 문구를 함께 고쳐야 한다
+
+### Session 015 — `home.html` 완전 폐기, 로그인 성공 → `career.html` 직행
+
+Session 014 에서 남겨 뒀던 판단 사항 — "로그인 성공 리다이렉트 자체를 `home.html`
+대신 `career.html` 로 완전히 바꿀지" — 사용자가 "진행!" 로 확정했다.
+
+#### 한 일
+
+1. **`login.html`** — 로그인 성공 리다이렉트 3곳(기존 세션 감지·비밀번호 로그인·
+   Google 모의 로그인) 전부 `'home.html'` → `'career.html'`
+2. **`home.html` 삭제** (`git rm` — 이력에 남아 언제든 복원 가능)
+3. **`init.ps1`** — home.html 을 요구하던 검사를 걷어내고, 반대 방향(되살아나면 실패)
+   과 새 불변식(로그인 성공은 career.html 로 간다)을 검사하는 쪽으로 뒤집었다:
+   - `$appFiles`·HTML 무결성·자산 참조 세 목록에서 `home.html` 제거
+   - **신설** "home.html 폐기 확인" — 파일이 되살아나면 `[FAIL]`
+   - **신설** "login.html 이 career.html 로 이동" — `'home.html'` 문자열이 남아 있으면
+     `[FAIL]`, `'career.html'` 이 있으면 `[OK]`
+   - stale-word 스캔 목록에서도 `home.html` 제거(파일이 없어 어차피 건너뛰지만 목록을
+     깨끗이 유지)
+   - 옛 "home.html 에서 career.html 진입 링크 확인" 블록은 대상이 사라졌으므로 제거
+     (Test-Path 가드로 조용히 스킵되게 두지 않고, 명시적으로 걷어냈다)
+4. **`feature_list.json`** — `home.html` 이 하던 일이 두 갈래였다: (a) 성공 시
+   정보 패널 표시, (b) 그 화면으로의 이동. (a)는 이제 어디에도 없으므로
+   **`auth-008`(신규, `retired`)** 로 분리해 evidence 를 그대로 옮겼다.
+   (b)는 목적지만 바뀐 것이라 `auth-002`(비밀번호 로그인)·`auth-003`(Google 모의)를
+   `career.html` 기준으로 갱신하고 `passing` 유지. `auth-005`는 원래 성공·실패 화면을
+   함께 다루던 기능이었는데, 실패 쪽(`error.html`)만 남기고 제목을 "로그인 실패 안내"
+   로 좁혔다 — 성공 쪽 evidence 는 `auth-008` 로 이관했다.
+
+   **통과한 사실을 지우지 않았다.** `auth-008` 은 실제로 검증됐던 evidence(6개 정보
+   행, Google 모의 표시, 접근 차단)를 그대로 보존한 채 `retired` 로만 바꿨다 —
+   Session 008 에서 진로상담 프록시 코드를 폐기할 때 쓴 것과 같은 방식이다.
+
+#### Verification run
+
+- `.\init.ps1` → **84개 항목 전부 `[OK]`, exit 0**
+  (`[OK] home.html 폐기 확인` · `[OK] login.html 이 로그인 성공 시 career.html 로 이동`)
+- **실기동** — 세션을 지우고 실제 로그인 폼(아이디 `teacher01` 입력 → 비밀번호 입력 →
+  [로그인] 버튼 클릭)을 눌러 `career.html` 도착을 확인했다. `home.html` 을 전혀
+  거치지 않는다. (첫 시도는 브라우저가 폐기 전 `login.html` 을 캐시하고 있어
+  `home.html` 로 갔다 404 — 새 탭에서 캐시 무효화 후 재확인해 실제 파일 내용이
+  맞다는 것과 실제 동작이 일치함을 둘 다 확인했다)
+
+#### 상태
+
+`passing` **17** · `retired` **10** · `not_started` 3 · `in_progress` 0 (총 30)
+
+#### 남은 것
+
+- **클립보드 바이트 단위 일치** — 여전히 사람이 한 번 실제 AI 화면에 붙여넣어야 닫힌다
+- `paste-006`(형식상 남은 항목) · 보류 `auth-006`·`auth-007`
+- (해소) README 의 "화면" 표·진입 문구·인증 한계 절에 남아 있던 `home.html` 참조 3곳도 이 세션에서 함께 정리했다

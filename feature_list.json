@@ -275,19 +275,20 @@
       "priority": 13,
       "area": "auth",
       "title": "로그인 (상태 유지 · Enter 키 · 실패 처리)",
-      "user_visible_behavior": "아이디/비밀번호가 맞으면 home.html 로, 틀리면 error.html 로 이동한다. '로그인 상태 유지'를 켜면 브라우저를 껐다 켜도 세션이 남는다.",
+      "user_visible_behavior": "아이디/비밀번호가 맞으면 career.html 로, 틀리면 error.html 로 이동한다. '로그인 상태 유지'를 켜면 브라우저를 껐다 켜도 세션이 남는다.",
       "status": "passing",
       "verification": [
         "틀린 비밀번호로 제출 → error.html 로 이동하고 사유가 표시되며 세션이 생기지 않는다.",
-        "맞는 비밀번호 + 상태유지 켬 → home.html 로 이동하고 세션이 localStorage 에 저장된다.",
+        "맞는 비밀번호 + 상태유지 켬 → career.html 로 이동하고 세션이 localStorage 에 저장된다.",
         "상태유지 끔 → 세션이 sessionStorage 에 저장된다.",
         "Enter 키로 제출이 동작한다."
       ],
       "evidence": [
         "2026-08-31 검증: 실패 → error.html + 세션 null 확인",
-        "성공(유지 켬) → home.html, localStorage=true / sessionStorage=false",
-        "유지 끔 → localStorage=false / sessionStorage=true",
-        "form submit 핸들러 사용이라 Enter 키가 기본 동작으로 처리됨"
+        "2026-08-31 검증: 유지 끔 → localStorage=false / sessionStorage=true",
+        "2026-08-31 검증: form submit 핸들러 사용이라 Enter 키가 기본 동작으로 처리됨",
+        "2026-09-02(Session 015) 이동 대상 변경 — 로그인 성공이 이제 home.html 이 아니라 career.html 로 간다. 실제 로그인 폼(아이디/비밀번호 입력 → [로그인] 클릭)을 눌러 career.html 로 도착함을 실기동 확인",
+        "init.ps1: 'login.html 이 로그인 성공 시 career.html 로 이동' [OK]"
       ],
       "notes": "아이디가 없을 때와 비밀번호가 틀릴 때 같은 메시지를 반환한다(계정 존재 여부 노출 방지)."
     },
@@ -296,16 +297,16 @@
       "priority": 14,
       "area": "auth",
       "title": "Google 소셜 로그인 버튼 (모의)",
-      "user_visible_behavior": "Google 버튼을 누르면 데모 계정으로 로그인되어 home.html 로 이동하고, 로그인 방식이 'Google (모의)'로 표시된다.",
+      "user_visible_behavior": "Google 버튼을 누르면 데모 계정으로 로그인되어 career.html 로 이동한다.",
       "status": "passing",
       "verification": [
-        "Google 버튼 클릭 → home.html 로 이동한다.",
-        "home.html 의 '로그인 방식'이 Google (모의) 로 표시된다.",
+        "Google 버튼 클릭 → career.html 로 이동한다.",
         "google_demo_user 로 비밀번호 로그인을 시도하면 거부된다."
       ],
       "evidence": [
         "2026-08-31 검증: 세션 {id: google_demo_user, provider: google} 생성 확인",
-        "비밀번호 로그인 시도 → '이 아이디는 Google 계정으로 가입되어 있습니다' 로 거부됨"
+        "2026-08-31 검증: 비밀번호 로그인 시도 → '이 아이디는 Google 계정으로 가입되어 있습니다' 로 거부됨",
+        "2026-09-02(Session 015) 이동 대상 변경 — home.html 대신 career.html 로 간다. '로그인 방식이 화면에 표시된다' 검증은 그 표시를 갖고 있던 home.html 이 폐기되며 함께 정리했다 — auth-008 참고"
       ],
       "notes": "⚠ 실제 OAuth 가 아니다. 실제 연동은 Google Cloud 클라이언트 ID 발급 + 서버측 토큰 검증이 필요하다. 화면에도 모의라고 명시했다."
     },
@@ -332,21 +333,17 @@
       "id": "auth-005",
       "priority": 16,
       "area": "auth",
-      "title": "로그인 결과 페이지 (성공 / 실패)",
-      "user_visible_behavior": "성공 시 home.html 에서 아이디·로그인 방식·시각·상태유지 여부·세션 저장 위치를 보여주고, 실패 시 error.html 에서 사유를 보여준다.",
+      "title": "로그인 실패 안내 (error.html)",
+      "user_visible_behavior": "로그인에 실패하면 error.html 에서 사유를 보여준다. 등록된 계정이 0개면 가입 안내가 추가로 뜬다.",
       "status": "passing",
       "verification": [
-        "home.html 에 6개 정보 행이 채워진다.",
-        "세션 없이 home.html 에 직접 접근하면 login.html 로 되돌아간다.",
         "error.html 이 쿼리스트링의 사유를 표시한다.",
         "등록 계정이 0개면 error.html 에 가입 안내가 추가로 뜬다."
       ],
       "evidence": [
-        "2026-08-31 검증: home.html 6개 행 정상 표시(스크린샷 확보)",
-        "세션 없이 home.html 접근 → login.html 로 차단됨",
-        "error.html 사유 표시 + 등록 계정 수 1개 표시 확인"
+        "2026-08-31 검증: error.html 사유 표시 + 등록 계정 수 1개 표시 확인"
       ],
-      "notes": "실패 사유는 textContent 로만 넣어 HTML 주입 여지를 없앴다. ⚠ home.html 의 접근 제어는 클라이언트 가드일 뿐 보안 경계가 아니다."
+      "notes": "실패 사유는 textContent 로만 넣어 HTML 주입 여지를 없앴다. 2026-09-02(Session 015): 원래 이 기능은 성공(home.html)·실패(error.html) 화면을 함께 다뤘다. home.html 이 폐기되면서 그쪽 내용은 auth-008 로 옮기고, 이 기능은 실패 안내만 남겼다."
     },
     {
       "id": "setup-002",
@@ -611,6 +608,25 @@
         "init.ps1 → 82개 항목 전부 [OK], exit 0 (빠른 선택 목록 · 학교급별 성적 · 예시 채우기 2화면 · SAMPLE_2 라벨 17종 검사 포함)"
       ],
       "notes": "선택지 목록·예시 값은 newPrjt01 의 것을 그대로 가져왔다. 실제 상담에서 쓰던 어휘이고, 특히 '일하는 방식' 9종은 2차 프롬프트가 열거한 항목과 같아야 1차 입력과 2차 분석의 어휘가 맞는다. 새로 지어내면 프롬프트가 기대하는 표현과 어긋난다. ⚠ 희망 직업·직무는 자유입력으로 남겼다 — 프롬프트가 '학생이 말한 표현' 자체를 해석 대상으로 삼는다. ⚠ SAMPLE_2 의 키는 FIELDS_2_EXP/SCHOOL 의 라벨과 정확히 같아야 한다. 라벨만 고치고 예시를 안 고치면 예시를 채워도 빈칸이 남는다 — init.ps1 이 이 갈라짐을 잡는다."
+    },
+    {
+      "id": "auth-008",
+      "priority": 30,
+      "area": "auth",
+      "title": "로그인 성공 정보 화면 (home.html) — 폐기됨",
+      "user_visible_behavior": "로그인에 성공하면 home.html 에서 아이디·로그인 방식(Google 모의 포함)·로그인 시각·'로그인 상태 유지' 여부·세션 저장 위치·등록된 계정 수를 보여주는 정보 패널이 있었다.",
+      "status": "retired",
+      "verification": [
+        "home.html 에 6개 정보 행이 채워진다.",
+        "home.html 의 '로그인 방식' 이 Google 로그인 시 'Google (모의)' 로 표시된다.",
+        "세션 없이 home.html 에 직접 접근하면 login.html 로 되돌아간다."
+      ],
+      "evidence": [
+        "2026-08-31 검증: home.html 6개 행 정상 표시(스크린샷 확보)",
+        "2026-08-31 검증: 세션 없이 home.html 접근 → login.html 로 차단됨",
+        "2026-08-31 검증: Google 모의 로그인 시 '로그인 방식' = Google (모의) 표시 확인"
+      ],
+      "notes": "2026-09-02(Session 015) 폐기 — 사용자 지시. 진로상담이 이 앱의 유일한 기능이라, 로그인 성공 후 세션 정보만 보여주고 카드 하나로 career.html 로 넘겨주던 중간 화면이 불필요해졌다. login.html 의 성공 리다이렉트를 career.html 로 바꾸고 home.html 을 git rm 으로 지웠다 — 이력에 남아 있어 언제든 되살릴 수 있다. 이 페이지가 하던 일 중 '로그인 방식 표시'는 auth-003, '실패 안내'는 auth-005 로 나눠 각각 지금도 사실인 부분만 남겼다. ⚠ home.html 의 접근 제어는 애초에 클라이언트 가드일 뿐 보안 경계가 아니었다(그 한계도 함께 폐기)."
     }
   ]
 }

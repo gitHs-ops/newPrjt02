@@ -51,7 +51,6 @@ $appFiles = @(
     'index.html',
     'login.html',
     'signup.html',
-    'home.html',
     'error.html',
     'assets\auth.css',
     'assets\auth.js'
@@ -91,8 +90,30 @@ if (Test-Path -LiteralPath 'assets\career-prompts.js' -PathType Leaf) {
     Write-Ok "프롬프트 생성물 없음 (원문을 fetch 로 직접 읽는다)"
 }
 
+# 2d) home.html 폐기 확인 — 2026-09-02(Session 015) 로그인 성공이 career.html 로
+#     바로 가도록 바꿨다. 진로상담이 유일한 기능이라 세션 정보만 보여주고 카드 하나로
+#     넘겨주던 중간 화면이 더는 필요 없다. 되살아나면 그 결정이 조용히 무효화된 것이다.
+if (Test-Path -LiteralPath 'home.html' -PathType Leaf) {
+    Write-Fail "home.html 이 되살아났다 — 로그인 성공은 이제 career.html 로 바로 간다(Session 015 폐기)"
+} else {
+    Write-Ok "home.html 폐기 확인 (로그인 성공 -> career.html 직행)"
+}
+
+# 2e) login.html 이 실제로 career.html 로 보내는가 — 폐기한 home.html 참조가 남아 있으면
+#     "파일은 지웠는데 코드는 여전히 그리로 가려는" 깨진 상태가 된다.
+if (Test-Path -LiteralPath 'login.html' -PathType Leaf) {
+    $lg = Get-Content -LiteralPath 'login.html' -Raw -Encoding UTF8
+    if ($lg -match "'home\.html'") {
+        Write-Fail "login.html 에 home.html 참조가 남아 있음 — career.html 로 통일할 것"
+    } elseif ($lg -match "'career\.html'") {
+        Write-Ok "login.html 이 로그인 성공 시 career.html 로 이동"
+    } else {
+        Write-Fail "login.html 의 로그인 성공 이동 대상을 찾지 못함"
+    }
+}
+
 # 3) HTML 무결성 — 비어 있지 않고 <html> 을 포함하는가
-foreach ($f in @('index.html', 'login.html', 'signup.html', 'home.html', 'error.html',
+foreach ($f in @('index.html', 'login.html', 'signup.html', 'error.html',
                  'career.html', 'career-step1.html', 'career-report1.html',
                  'career-step2.html', 'career-report2.html')) {
     if (-not (Test-Path -LiteralPath $f -PathType Leaf)) { continue }
@@ -105,7 +126,7 @@ foreach ($f in @('index.html', 'login.html', 'signup.html', 'home.html', 'error.
 }
 
 # 4) 각 페이지가 공통 자산을 참조하는가 (경로 오타 조기 탐지)
-foreach ($f in @('login.html', 'signup.html', 'home.html', 'error.html')) {
+foreach ($f in @('login.html', 'signup.html', 'error.html')) {
     if (-not (Test-Path -LiteralPath $f -PathType Leaf)) { continue }
     $content = Get-Content -LiteralPath $f -Raw -Encoding UTF8
     $hasCss = $content -match 'assets/auth\.css'
@@ -481,7 +502,7 @@ if ($pMissing.Count -eq 0 -and $pTotal -gt 30000) {
 #   ⚠ 주석과 <script> 안은 뺀다 — 경위를 설명하는 주석까지 잡으면 기록을 지우게 된다.
 $staleWords = @('AI 연결됨', 'AI 미설정', '모의 모드', '토큰 사용량', '연결 설정', '분석 실행')
 $stalePages = @()
-foreach ($f in @('index.html', 'home.html', 'career.html', 'career-step1.html',
+foreach ($f in @('index.html', 'career.html', 'career-step1.html',
                  'career-report1.html', 'career-step2.html', 'career-report2.html')) {
     if (-not (Test-Path -LiteralPath $f -PathType Leaf)) { continue }
     $body = Get-Content -LiteralPath $f -Raw -Encoding UTF8
@@ -504,16 +525,6 @@ if (Test-Path -LiteralPath 'index.html' -PathType Leaf) {
         Write-Fail "index.html 이 아직 '작업중' 자리표시자다 — 앱이 무엇인지 말해야 한다"
     } else {
         Write-Ok "index.html 이 앱을 설명한다 (자리표시자 아님)"
-    }
-}
-
-# 5e) 로그인 성공 페이지가 진로상담으로 연결되는가
-if (Test-Path -LiteralPath 'home.html' -PathType Leaf) {
-    $homeHtml = Get-Content -LiteralPath 'home.html' -Raw -Encoding UTF8
-    if ($homeHtml -match 'href="career\.html"') {
-        Write-Ok "home.html 에서 진로상담(career.html) 진입 링크 확인"
-    } else {
-        Write-Fail "home.html 에 career.html 링크가 없음"
     }
 }
 

@@ -1,6 +1,6 @@
 # Session Handoff
 
-> 최종 갱신: 2026-09-02 (Session 014 — 내비게이션 정리 · AI 화면 선택)
+> 최종 갱신: 2026-09-02 (Session 015 — home.html 완전 폐기)
 > ⚠ 이 저장소는 2026-09-02 에 `newPrjt01` 에서 분리됐다. 커밋 이력은 이어받지 않았다 —
 > 이전 이력은 `gitHs-ops/newPrjt01` 과 로컬 `C:\myPrjt01\newPrjt01` 에 있다.
 > 상세 이력은 `claude-progress.md`, 기능 상태는 `feature_list.json` 참고.
@@ -39,8 +39,11 @@
 `paste-004`(AI 화면 선택 드롭다운 — Claude/ChatGPT/Gemini/Perplexity, 마지막 선택 기억)도
 끝났다. `index.html` → `career.html` 직행(로그인된 재방문 시 `home.html` 미경유)과
 내비게이션 문구 정리("사례 목록"→"처음으로")도 반영했다.
-⚠ `home.html` 파일과 로그인 성공 리다이렉트 자체는 그대로 뒀다 — 필요하면 다음
-세션에서 `auth-002/003/005` 와 함께 다시 판단할 것.
+`home.html` 은 완전히 폐기했다(Session 015, 사용자 확정). `login.html` 의 로그인
+성공 리다이렉트 3곳 모두 `career.html` 로 바뀌었고, 파일은 `git rm` 으로 지웠다
+(이력에 남아 복원 가능). `auth-002`·`auth-003`·`auth-005` 를 `career.html` 기준으로
+고치고, home.html 이 하던 정보 패널 표시는 `auth-008`(신규, `retired`)로 분리해
+evidence 를 보존했다.
 
 **`in_progress` 0건.** 남은 `not_started` 3건은 `paste-006`(형식상 정리),
 `auth-006/007`(보류)뿐이다.

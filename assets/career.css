@@ -300,6 +300,20 @@ option { background: #fff; color: var(--text-primary); }
 .toast.ok    { background: rgba(4, 120, 87, .95); }
 .toast.error { background: rgba(185, 28, 28, .95); }
 
+/* --------------------------------------------------------- 빠른 선택 드롭다운 */
+
+/* 자유입력란 바로 위에 붙는다. 본 입력이 아니라 보조라는 것이 보여야 하므로
+   한 단계 작고 옅게 둔다. */
+select.quick {
+    margin-bottom: 6px;
+    padding: 8px 12px;
+    font-size: 12.5px;
+    color: var(--text-secondary);
+    background: rgba(99, 102, 241, .06);
+    border-color: rgba(99, 102, 241, .22);
+}
+select.quick:focus { color: var(--text-primary); }
+
 /* ------------------------------------------------- 보고서 완결성 검사 결과 */
 
 .check {

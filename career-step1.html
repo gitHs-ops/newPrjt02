@@ -32,8 +32,15 @@
         <h2 id="caseTitle">사례</h2>
         <p class="sub">
             <span class="req">*</span> 는 필수입니다. 나머지는 비워 두면 <code>(입력 없음)</code> 으로 전달됩니다.
+            자유입력란 위의 <strong>빠른 선택</strong>은 고를 때마다 아래 칸에 <strong>덧붙습니다</strong>(중복은 무시).
+            여러 개를 연달아 담을 수 있고, 직접 타이핑해도 됩니다.
             <strong>개인식별정보·민감정보는 넣지 마십시오.</strong>
         </p>
+        <div class="btn-row" style="margin-top:0;margin-bottom:16px">
+            <button type="button" class="btn btn-ghost" id="sampleBtn"
+                    title="테스트용 예시로 전 항목 채우기">예시 채우기</button>
+            <button type="button" class="btn btn-ghost" id="clearBtn">전부 지우기</button>
+        </div>
         <div id="form"></div>
     </div>
 
@@ -84,7 +91,7 @@
 
     function scoreChoices() {
         var g = (document.getElementById('f_grade') || {}).value || '';
-        return Career.isMiddle(g) ? Career.CHOICES.scoreMiddle : Career.CHOICES.scoreHigh;
+        return Career.isMiddle(g) ? Career.CHOICES.score['중학교'] : Career.CHOICES.score['고등학교'];
     }
 
     function fillSelect(sel, items, current) {
@@ -114,6 +121,15 @@
             lab.appendChild(r);
         }
         wrap.appendChild(lab);
+
+        /* 빠른 선택 — 자유입력란 위에 붙는다. 고르면 아래 칸에 덧붙는다. */
+        var quickKey = Career.QUICK_1[f.key];
+        if (quickKey && f.type === 'textarea') {
+            var qs = document.createElement('select');
+            qs.id = 'q_' + f.key;
+            qs.className = 'quick';
+            wrap.appendChild(qs);
+        }
 
         var el;
         if (f.type === 'select') {
@@ -145,6 +161,19 @@
     fillSelect(document.getElementById('f_region'), Career.CHOICES.region, kase.student.region);
     fillSelect(document.getElementById('f_entryYear'), entryYears(),       kase.student.entryYear);
     fillSelect(document.getElementById('f_score'),  scoreChoices(),        kase.student.score);
+
+    /* 빠른 선택 채우고 묶기 */
+    Object.keys(Career.QUICK_1).forEach(function (key) {
+        var sel = document.getElementById('q_' + key);
+        if (!sel) { return; }
+        sel.innerHTML = '<option value="">빠른 선택…</option>';
+        Career.CHOICES[Career.QUICK_1[key]].forEach(function (v) {
+            var o = document.createElement('option');
+            o.value = v; o.textContent = v;
+            sel.appendChild(o);
+        });
+        Career.bindQuickPick('q_' + key, 'f_' + key);
+    });
 
     /* 저장된 값 복원 */
     Career.FIELDS_1.forEach(function (f) {
@@ -201,6 +230,34 @@
     function schedule() { clearTimeout(t); t = setTimeout(rebuild, 250); }
     form.addEventListener('input', schedule);
     form.addEventListener('change', schedule);
+
+    /* 테스트용 예시 — 전 과정을 반복 검증할 때 손으로 채우는 부담을 없앤다. */
+    document.getElementById('sampleBtn').addEventListener('click', function () {
+        if (!confirm('테스트용 예시로 모든 항목을 덮어씁니다. 계속할까요?')) { return; }
+        var sm = Career.SAMPLE_1;
+        document.getElementById('f_grade').value = sm.grade;
+        fillSelect(document.getElementById('f_score'), scoreChoices(), sm.score);
+        var y = Career.entryYearFor(sm.grade);
+        if (y) { document.getElementById('f_entryYear').value = y + '년'; }
+        Career.FIELDS_1.forEach(function (f) {
+            if (f.key === 'grade' || f.key === 'score' || f.key === 'entryYear') { return; }
+            var el = document.getElementById('f_' + f.key);
+            if (el && sm[f.key] !== undefined) { el.value = sm[f.key]; }
+        });
+        rebuild();
+        Career.toast('예시로 채웠습니다. 필요한 곳만 고치세요.', 'ok');
+    });
+
+    document.getElementById('clearBtn').addEventListener('click', function () {
+        if (!confirm('입력한 내용을 전부 지웁니다. 계속할까요?')) { return; }
+        Career.FIELDS_1.forEach(function (f) {
+            var el = document.getElementById('f_' + f.key);
+            if (el) { el.value = ''; }
+        });
+        fillSelect(document.getElementById('f_score'), scoreChoices(), '');
+        rebuild();
+        Career.toast('전부 지웠습니다.');
+    });
 
     document.getElementById('previewBtn').addEventListener('click', function () {
         var pv = document.getElementById('preview');

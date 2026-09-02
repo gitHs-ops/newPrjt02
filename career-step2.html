@@ -35,11 +35,19 @@
             없으면 프롬프트에 <code>추가 정보 없음</code> · <code>학교자료 없음</code> 으로 전달됩니다.
         </p>
         <p class="size" id="r1info">—</p>
+        <div class="btn-row">
+            <button type="button" class="btn btn-ghost" id="sampleBtn"
+                    title="테스트용 예시로 2차 입력 채우기 (1차 결과는 그대로 둡니다)">예시 채우기</button>
+            <button type="button" class="btn btn-ghost" id="clearBtn">2차 입력 지우기</button>
+        </div>
     </div>
 
     <div class="panel">
         <h2>학생의 추가 경험 · 행동 정보</h2>
-        <p class="sub">기본값은 <strong>없음</strong>입니다. 있는 경우에만 켜고 입력하십시오.</p>
+        <p class="sub">
+            기본값은 <strong>없음</strong>입니다. 있는 경우에만 켜고 입력하십시오.
+            일부 항목에는 <strong>빠른 선택</strong>이 붙어 있습니다 — 고르면 아래 칸에 덧붙습니다.
+        </p>
         <div class="row-between" style="margin-bottom:14px">
             <label class="checkbox"><input type="radio" name="expOpt" value="no" checked> 없음</label>
             <label class="checkbox"><input type="radio" name="expOpt" value="yes"> 있음</label>
@@ -116,7 +124,7 @@
 
     /* ------------------------------------------------------------ 폼 생성 */
 
-    function buildGroup(boxId, labels, prefix, saved) {
+    function buildGroup(boxId, labels, prefix, saved, quickMap) {
         var box = document.getElementById(boxId);
         labels.forEach(function (label, i) {
             var wrap = document.createElement('div');
@@ -124,20 +132,39 @@
             var lab = document.createElement('label');
             lab.setAttribute('for', prefix + i);
             lab.textContent = label;
+            wrap.appendChild(lab);
+
+            /* 빠른 선택이 정의된 항목에만 붙인다 —
+               '기억에 남는 수행평가' 같은 서술형에는 선택지가 의미가 없다. */
+            var qk = quickMap && quickMap[i];
+            if (qk) {
+                var qs = document.createElement('select');
+                qs.id = 'q' + prefix + i;
+                qs.className = 'quick';
+                qs.innerHTML = '<option value="">빠른 선택…</option>';
+                Career.CHOICES[qk].forEach(function (v) {
+                    var o = document.createElement('option');
+                    o.value = v; o.textContent = v;
+                    qs.appendChild(o);
+                });
+                wrap.appendChild(qs);
+            }
+
             var ta = document.createElement('textarea');
             ta.id = prefix + i;
             ta.rows = 2;
             ta.dataset.label = label;
             if (saved && saved[label]) { ta.value = saved[label]; }
-            wrap.appendChild(lab);
             wrap.appendChild(ta);
             box.appendChild(wrap);
+
+            if (qk) { Career.bindQuickPick('q' + prefix + i, prefix + i); }
         });
     }
 
     var saved = kase.extra2 || {};
-    buildGroup('expFields',    Career.FIELDS_2_EXP,    'e_', saved.exp);
-    buildGroup('schoolFields', Career.FIELDS_2_SCHOOL, 's_', saved.school);
+    buildGroup('expFields',    Career.FIELDS_2_EXP,    'e_', saved.exp, Career.QUICK_2_EXP);
+    buildGroup('schoolFields', Career.FIELDS_2_SCHOOL, 's_', saved.school, null);
     document.getElementById('teacherAsk').value = saved.teacherAsk || '';
 
     function setRadio(name, on) {
@@ -206,6 +233,40 @@
                 schedule();
             });
         });
+    });
+
+    function setBoth(on) {
+        setRadio('expOpt', on); setRadio('schoolOpt', on);
+        document.getElementById('expFields').hidden = !on;
+        document.getElementById('schoolFields').hidden = !on;
+    }
+
+    /* 테스트용 예시 — 1차 결과는 건드리지 않는다. */
+    document.getElementById('sampleBtn').addEventListener('click', function () {
+        if (!confirm('테스트용 예시로 2차 입력을 채웁니다. (1차 결과는 그대로 둡니다) 계속할까요?')) { return; }
+        var sm = Career.SAMPLE_2;
+        setBoth(true);
+        Career.FIELDS_2_EXP.forEach(function (label, i) {
+            var el = document.getElementById('e_' + i);
+            if (el && sm.exp[label]) { el.value = sm.exp[label]; }
+        });
+        Career.FIELDS_2_SCHOOL.forEach(function (label, i) {
+            var el = document.getElementById('s_' + i);
+            if (el && sm.school[label]) { el.value = sm.school[label]; }
+        });
+        document.getElementById('teacherAsk').value = sm.teacherAsk;
+        rebuild();
+        Career.toast('예시로 채웠습니다. 필요한 곳만 고치세요.', 'ok');
+    });
+
+    document.getElementById('clearBtn').addEventListener('click', function () {
+        if (!confirm('2차 입력을 전부 지웁니다. (1차 결과는 그대로 둡니다) 계속할까요?')) { return; }
+        Array.prototype.forEach.call(document.querySelectorAll('#expFields textarea, #schoolFields textarea'),
+            function (ta) { ta.value = ''; });
+        document.getElementById('teacherAsk').value = '';
+        setBoth(false);
+        rebuild();
+        Career.toast('2차 입력을 지웠습니다.');
     });
 
     document.getElementById('previewBtn').addEventListener('click', function () {

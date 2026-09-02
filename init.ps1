@@ -158,7 +158,8 @@ if (Test-Path -LiteralPath 'assets\career.js' -PathType Leaf) {
     $needed = @('loadPrompts', 'buildPrompt1', 'buildPrompt2', 'copyText', 'saveReport',
                 'mdToHtml', 'listCases', 'createCase', 'updateCase', 'deleteCase',
                 'downloadMd', 'downloadCombined', 'entryYearFor', 'mountChrome',
-                'FIELDS_2_EXP', 'FIELDS_2_SCHOOL', 'checkReport', 'detectKind')
+                'FIELDS_2_EXP', 'FIELDS_2_SCHOOL', 'checkReport', 'detectKind',
+                'bindQuickPick', 'SAMPLE_1', 'SAMPLE_2', 'QUICK_1', 'QUICK_2_EXP')
     $missing = @()
     foreach ($fn in $needed) { if ($cjs -notmatch [regex]::Escape($fn)) { $missing += $fn } }
     if ($missing.Count -eq 0) {
@@ -188,6 +189,53 @@ if (Test-Path -LiteralPath 'assets\career.js' -PathType Leaf) {
         Write-Ok "클립보드 대체 경로 존재 (clipboard API + execCommand)"
     } else {
         Write-Fail "career.js 에 클립보드 대체 경로가 없음 — 막힌 환경에서 복사가 실패한다"
+    }
+
+    # 입력 보조 — 반복 입력 부담을 줄이는 장치들. newPrjt01 에서 가져왔다.
+    #   빠른 선택이 사라지면 교사가 매 사례마다 같은 문구를 손으로 친다.
+    if ($cjs -match 'workStyle' -and $cjs -match 'teamRole' -and $cjs -match 'askedFor') {
+        Write-Ok "빠른 선택 목록 존재 (과목·산업·계기·일하는 방식·전공·조별역할·부탁받는 일)"
+    } else {
+        Write-Fail "career.js 에 빠른 선택 목록이 없음 — 반복 입력 부담이 그대로 돌아온다"
+    }
+
+    # 성적 표기는 학교급에 묶여 있다. 중학교에 '등급'을 쓰면 프롬프트가 모순으로 잡는다.
+    if ($cjs -match "score:\s*\{" -and $cjs -match '중학교' -and $cjs -match '고등학교') {
+        Write-Ok "성적 선택지가 학교급별로 분리됨 (중학교=성취도 / 고등학교=등급)"
+    } else {
+        Write-Fail "성적 선택지가 학교급별로 갈라져 있지 않음 — 중2에 '등급' 이 들어갈 수 있다"
+    }
+
+    # 예시 채우기 — 전 과정을 반복 검증할 때 손으로 채우는 부담을 없앤다
+    $noSample = @()
+    foreach ($f in @('career-step1.html', 'career-step2.html')) {
+        if ((Test-Path -LiteralPath $f -PathType Leaf) -and
+            ((Get-Content -LiteralPath $f -Raw -Encoding UTF8) -notmatch 'sampleBtn')) { $noSample += $f }
+    }
+    if ($noSample.Count -eq 0) {
+        Write-Ok "입력 화면에 예시 채우기 존재 (2화면)"
+    } else {
+        Write-Fail "예시 채우기가 없는 입력 화면: $($noSample -join ', ')"
+    }
+
+    # 예시(SAMPLE_2)의 키가 2차 항목 라벨과 어긋나면 예시를 채워도 빈칸이 남는다.
+    # 라벨을 고칠 때 예시를 같이 안 고치는 사고를 여기서 잡는다.
+    $s2 = ''
+    if ($cjs -match '(?s)var SAMPLE_2 = \{(.*?)\n    \};') { $s2 = $Matches[1] }
+    $labelMiss = @()
+    foreach ($arr in @('FIELDS_2_EXP', 'FIELDS_2_SCHOOL')) {
+        if ($cjs -match "(?s)var $arr = \[(.*?)\];") {
+            foreach ($m in [regex]::Matches($Matches[1], "'([^']+)'")) {
+                if ($s2 -notmatch [regex]::Escape($m.Groups[1].Value)) { $labelMiss += $m.Groups[1].Value }
+            }
+        }
+    }
+    if ($s2 -and $labelMiss.Count -eq 0) {
+        Write-Ok "예시(SAMPLE_2)가 2차 항목 라벨 17종을 모두 덮는다"
+    } elseif (-not $s2) {
+        Write-Fail "career.js 에서 SAMPLE_2 를 찾지 못함"
+    } else {
+        Write-Fail "예시에 빠진 2차 항목: $($labelMiss -join ', ') — 라벨과 예시를 같이 고칠 것"
     }
 
     # 2차는 1차 결과를 물고 가야 의미가 있다. buildPrompt2 가 report1 을 받지 못하면

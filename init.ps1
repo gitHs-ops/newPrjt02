@@ -407,6 +407,38 @@ if ($pMissing.Count -eq 0 -and $pTotal -gt 30000) {
     Write-Fail "프롬프트 원문이 비정상적으로 작다 ($pTotal bytes) — 내용이 날아갔는지 확인할 것"
 }
 
+# 5d-2) 화면에 프록시 시절 잔재가 남아 있지 않은가 —
+#   "AI 연결됨" 배지·"모의 모드"·"토큰 사용량"·"연결 설정" 은 앱이 AI 를 직접 부르던 시절의
+#   표시다. 이제 앱은 프롬프트를 만들 뿐이므로 남아 있으면 사용자를 오도한다.
+#   ⚠ 주석과 <script> 안은 뺀다 — 경위를 설명하는 주석까지 잡으면 기록을 지우게 된다.
+$staleWords = @('AI 연결됨', 'AI 미설정', '모의 모드', '토큰 사용량', '연결 설정', '분석 실행')
+$stalePages = @()
+foreach ($f in @('index.html', 'home.html', 'career.html', 'career-step1.html',
+                 'career-report1.html', 'career-step2.html', 'career-report2.html')) {
+    if (-not (Test-Path -LiteralPath $f -PathType Leaf)) { continue }
+    $body = Get-Content -LiteralPath $f -Raw -Encoding UTF8
+    $body = [regex]::Replace($body, '(?s)<script.*?</script>', '')
+    $body = [regex]::Replace($body, '(?s)<!--.*?-->', '')
+    foreach ($w in $staleWords) {
+        if ($body -match [regex]::Escape($w)) { $stalePages += ($f + ':' + $w) }
+    }
+}
+if ($stalePages.Count -eq 0) {
+    Write-Ok "화면에 프록시 시절 표시 없음 (복사·붙여넣기 방식에 맞는 안내만)"
+} else {
+    Write-Fail "프록시 시절 표시가 화면에 남아 있음: $($stalePages -join ', ')"
+}
+
+# 랜딩이 아직 "작업중" 자리표시자인가 — 동작하는 앱이 있는데 그렇게 보이면 안 된다
+if (Test-Path -LiteralPath 'index.html' -PathType Leaf) {
+    $idx = Get-Content -LiteralPath 'index.html' -Raw -Encoding UTF8
+    if ($idx -match 'Coming soon' -or $idx -match '작업중입니다') {
+        Write-Fail "index.html 이 아직 '작업중' 자리표시자다 — 앱이 무엇인지 말해야 한다"
+    } else {
+        Write-Ok "index.html 이 앱을 설명한다 (자리표시자 아님)"
+    }
+}
+
 # 5e) 로그인 성공 페이지가 진로상담으로 연결되는가
 if (Test-Path -LiteralPath 'home.html' -PathType Leaf) {
     $homeHtml = Get-Content -LiteralPath 'home.html' -Raw -Encoding UTF8

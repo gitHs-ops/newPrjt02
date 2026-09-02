@@ -1,6 +1,6 @@
 # Session Handoff
 
-> 최종 갱신: 2026-09-02 (Session 011 — 완결성 검사까지 완료)
+> 최종 갱신: 2026-09-02 (Session 012 — 앱 정의·화면 안내 정리)
 > ⚠ 이 저장소는 2026-09-02 에 `newPrjt01` 에서 분리됐다. 커밋 이력은 이어받지 않았다 —
 > 이전 이력은 `gitHs-ops/newPrjt01` 과 로컬 `C:\myPrjt01\newPrjt01` 에 있다.
 > 상세 이력은 `claude-progress.md`, 기능 상태는 `feature_list.json` 참고.
@@ -29,7 +29,12 @@
 `tools/check-report.py` 두 곳에 있고, `init.ps1` 이 갈라짐을 감시한다** —
 프롬프트의 출력 구조를 바꾸면 세 곳을 함께 고쳐야 한다.
 
-다음 작업은 `spec-001`(앱 정의 재작성) · `paste-005`(화면 안내).
+`spec-001`(앱 정의)·`paste-005`(화면 안내)도 끝났다. `index.html` 이 더 이상
+"Coming soon" 이 아니고, `README` 도 현재 방식으로 다시 썼다.
+프록시 시절 표시가 다시 들어오지 않도록 `init.ps1` 이 화면 마크업을 감시한다.
+
+**`in_progress` 0건.** 남은 `not_started` 4건은 `paste-004`(AI 화면 선택),
+`paste-006`(형식상 남은 항목), `auth-006/007`(보류) 뿐이다.
 
 ### `paste-006` 은 끝났다 (2026-09-02)
 

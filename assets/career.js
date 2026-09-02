@@ -255,6 +255,103 @@
         return rec;
     }
 
+    /* ------------------------------------------------------ 보고서 완결성 검사 */
+
+    /* tools/check-report.py 와 **같은 기대 형식**이다. 한쪽만 고치면 두 검사가 갈라진다.
+       두 곳 모두 assets/prompts/*.txt 의 출력 규정에서 나온 값이므로,
+       프롬프트의 A~L / STEP 구조를 바꾸면 여기와 check-report.py 를 함께 고쳐야 한다. */
+    var FIRST_SECTIONS = 'ABCDEFGHIJKL'.split('');
+    var FIRST_TAIL_HEADS = ['현재 공식자료로 확인된 내용', '현재 확인할 수 없는 내용', '상담에서의 해석'];
+    var FIRST_DISCLAIMER = '본 자료는 진로상담을 시작하기 위한 1차 정보이며';
+    var SECOND_DISCLAIMER = '본 2차 분석은 1차 진로리서치에서';
+    var MOCK_MARK = '모의 응답';
+    var BROKEN_CHAR = String.fromCharCode(0xFFFD);
+    var TAIL_WINDOW = 25;      /* 면책 문장은 문서 끝부분에 있어야 한다 */
+    var MIN_CHARS = 3000;
+
+    function reFind(text, pattern) { return new RegExp(pattern, 'm').test(text); }
+
+    /** 1차인지 2차인지 스스로 판별한다. 잘린 문서일수록 이게 중요하다 —
+        그래야 "무엇이 빠졌는지" 를 말해 줄 수 있다. 0 이면 판별 불가. */
+    function detectKind(text) {
+        if (text.indexOf(SECOND_DISCLAIMER) >= 0 || reFind(text, '^#{1,3}\\s*STEP\\s*\\d+\\b')) { return 2; }
+        var secs = text.match(/^#{1,3}\s*[A-L]\./gm);
+        if (text.indexOf(FIRST_DISCLAIMER) >= 0 || (secs && secs.length >= 3)) { return 1; }
+        return 0;
+    }
+
+    /**
+     * 붙여넣은 보고서가 끝까지 왔는지 본다.
+     *
+     * 자동 호출 시절에는 프록시의 이어쓰기가 잘림을 막았다. 복사·붙여넣기에서는
+     * **사람이 스크롤 중간에서 복사하거나 전체 선택에 실패해** 같은 결과가 난다.
+     * 그래서 이 검사는 이 방식에서 더 중요하다.
+     *
+     * 저장을 막지는 않는다 — 판단은 사용자 몫이고, 잘린 보고서라도 남겨 둘 이유가 있다.
+     */
+    function checkReport(md, kind) {
+        var text = (md || '').replace(/\r\n/g, '\n').replace(/^﻿/, '');
+        var out = { chars: text.length, kind: 0, problems: [], passes: [] };
+
+        if (!text.trim()) { out.problems.push('내용이 비어 있습니다.'); return out; }
+
+        if (text.indexOf(BROKEN_CHAR) >= 0) {
+            out.problems.push('깨진 문자가 있습니다 — 인코딩 사고이거나 복사가 어긋났습니다.');
+        }
+
+        var k = kind || detectKind(text);
+        out.kind = k;
+        if (k === 0) {
+            out.problems.push('1차/2차 어느 쪽인지 판별되지 않습니다 — 통째로 잘렸을 수 있습니다.');
+            return out;
+        }
+
+        if (text.indexOf(MOCK_MARK) >= 0) {
+            out.problems.push('"모의 응답" 표시가 있습니다 — 실제 분석 결과가 아닙니다.');
+        }
+
+        var disclaimer;
+        if (k === 1) {
+            var missSec = FIRST_SECTIONS.filter(function (s) {
+                return !reFind(text, '^#{1,3}\\s*' + s + '\\.');
+            });
+            if (missSec.length) { out.problems.push('섹션 누락: ' + missSec.join(', ')); }
+            else { out.passes.push('A~L 섹션 12개 모두 존재'); }
+
+            var missTail = FIRST_TAIL_HEADS.filter(function (h) { return text.indexOf(h) < 0; });
+            if (missTail.length) { out.problems.push('출처 구분 소제목 누락: ' + missTail.join(', ')); }
+            else { out.passes.push('출처 구분 소제목 3개 존재'); }
+
+            disclaimer = FIRST_DISCLAIMER;
+        } else {
+            var missStep = [];
+            for (var n = 1; n <= 11; n++) {
+                if (!reFind(text, '^#{1,3}\\s*STEP\\s*' + n + '\\b')) { missStep.push('STEP ' + n); }
+            }
+            if (missStep.length) { out.problems.push('단계 누락: ' + missStep.join(', ')); }
+            else { out.passes.push('STEP 1~11 모두 존재'); }
+
+            disclaimer = SECOND_DISCLAIMER;
+        }
+
+        /* "있는가" 만으로는 부족하다 — 끝에 있어야 끝까지 나온 것이다. */
+        var lines = text.split('\n').filter(function (l) { return l.trim(); });
+        var tail = lines.slice(-TAIL_WINDOW);
+        if (text.indexOf(disclaimer) < 0) {
+            out.problems.push('면책 문장이 없습니다 — 뒤쪽이 잘렸습니다.');
+        } else if (!tail.some(function (l) { return l.indexOf(disclaimer) >= 0; })) {
+            out.problems.push('면책 문장이 본문 중간에 있습니다 — 뒤쪽이 잘렸습니다.');
+        } else {
+            out.passes.push('면책 문장이 문서 끝에 있음');
+        }
+
+        if (text.length < MIN_CHARS) {
+            out.problems.push('본문이 너무 짧습니다 (' + text.length.toLocaleString() +
+                              '자) — 정상 보고서는 수천~수만 자입니다.');
+        }
+        return out;
+    }
+
     /* ---------------------------------------------------------- 마크다운 */
 
     function esc(s) {
@@ -397,6 +494,10 @@
         deleteCase: deleteCase,
         saveReport: saveReport,
         currentOwner: currentOwner,
+
+        /* 완결성 검사 — tools/check-report.py 와 같은 기대 형식 */
+        checkReport: checkReport,
+        detectKind: detectKind,
 
         /* 출력 */
         mdToHtml: mdToHtml,

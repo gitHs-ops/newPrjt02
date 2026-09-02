@@ -300,6 +300,30 @@ option { background: #fff; color: var(--text-primary); }
 .toast.ok    { background: rgba(4, 120, 87, .95); }
 .toast.error { background: rgba(185, 28, 28, .95); }
 
+/* ------------------------------------------------- 보고서 완결성 검사 결과 */
+
+.check {
+    margin-top: 12px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--field-border);
+    background: var(--field-bg);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    font-size: 12.5px;
+    line-height: 1.7;
+}
+.check.ok   { border-color: rgba(16,185,129,.45); background: rgba(16,185,129,.08); }
+.check.warn { border-color: rgba(245,158,11,.55); background: rgba(245,158,11,.10); }
+
+.check .head { font-weight: 800; margin-bottom: 4px; }
+.check.ok   .head { color: #047857; }
+.check.warn .head { color: #b45309; }
+
+.check ul { margin: 4px 0 0 18px; }
+.check li { margin: 2px 0; }
+.check .pass { color: var(--text-secondary); }
+
 @media (prefers-reduced-motion: reduce) {
     .panel, .case, .doc-head { animation: none !important; }
 }

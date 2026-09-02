@@ -158,7 +158,7 @@ if (Test-Path -LiteralPath 'assets\career.js' -PathType Leaf) {
     $needed = @('loadPrompts', 'buildPrompt1', 'buildPrompt2', 'copyText', 'saveReport',
                 'mdToHtml', 'listCases', 'createCase', 'updateCase', 'deleteCase',
                 'downloadMd', 'downloadCombined', 'entryYearFor', 'mountChrome',
-                'FIELDS_2_EXP', 'FIELDS_2_SCHOOL')
+                'FIELDS_2_EXP', 'FIELDS_2_SCHOOL', 'checkReport', 'detectKind')
     $missing = @()
     foreach ($fn in $needed) { if ($cjs -notmatch [regex]::Escape($fn)) { $missing += $fn } }
     if ($missing.Count -eq 0) {
@@ -199,6 +199,39 @@ if (Test-Path -LiteralPath 'assets\career.js' -PathType Leaf) {
         } else {
             Write-Fail "career-step2.html 이 1차 결과를 싣지 않는다 — 2차 분석이 빈 입력으로 나간다"
         }
+    }
+
+    # 완결성 검사가 두 벌 있다 — career.js(저장 시점)와 tools/check-report.py(저장된 파일).
+    # 기대 형식이 갈라지면 한쪽만 통과하는 보고서가 생겨 검사 자체를 믿을 수 없게 된다.
+    # 두 파일이 같은 기대값 문자열을 갖고 있는지 대조한다.
+    if (Test-Path -LiteralPath 'tools\check-report.py' -PathType Leaf) {
+        $py = Get-Content -LiteralPath 'tools\check-report.py' -Raw -Encoding UTF8
+        $shared = @('본 자료는 진로상담을 시작하기 위한 1차 정보이며',
+                    '본 2차 분석은 1차 진로리서치에서',
+                    '현재 공식자료로 확인된 내용',
+                    '현재 확인할 수 없는 내용',
+                    '상담에서의 해석')
+        $drift = @()
+        foreach ($m in $shared) {
+            if (($cjs -notmatch [regex]::Escape($m)) -or ($py -notmatch [regex]::Escape($m))) { $drift += $m }
+        }
+        if ($drift.Count -eq 0) {
+            Write-Ok "완결성 검사 기대값이 career.js 와 check-report.py 에서 일치 ($($shared.Count)종)"
+        } else {
+            Write-Fail "완결성 검사 기대값이 갈라졌다: $($drift -join ' / ') — 두 파일을 같이 고칠 것"
+        }
+    }
+
+    # 붙여넣기 화면이 실제로 검사를 부르는가. career.js 에만 있고 화면이 안 부르면 무용지물이다.
+    $noCheck = @()
+    foreach ($f in @('career-report1.html', 'career-report2.html')) {
+        if ((Test-Path -LiteralPath $f -PathType Leaf) -and
+            ((Get-Content -LiteralPath $f -Raw -Encoding UTF8) -notmatch 'checkReport')) { $noCheck += $f }
+    }
+    if ($noCheck.Count -eq 0) {
+        Write-Ok "붙여넣기 화면이 완결성 검사를 호출 (2화면)"
+    } else {
+        Write-Fail "완결성 검사를 부르지 않는 화면: $($noCheck -join ', ')"
     }
 
     # 붙여넣은 md 는 AI 출력이며 신뢰 대상이 아니다. 렌더 전에 이스케이프해야 한다.

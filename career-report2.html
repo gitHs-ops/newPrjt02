@@ -38,6 +38,7 @@
             <label for="pasted">2차 분석 결과 (마크다운)</label>
             <textarea id="pasted" rows="10" placeholder="여기에 붙여넣기 (Ctrl+V)"></textarea>
             <p class="note" id="pasteInfo">아직 입력이 없습니다.</p>
+            <div class="check" id="check" hidden></div>
         </div>
         <div class="btn-row">
             <button type="button" class="btn btn-primary grow" id="saveBtn">저장하기</button>
@@ -98,19 +99,61 @@
         document.getElementById('bothBtn').disabled = !kase.report1;
     }
 
+    var ROUND = 2;
+
+    /* 붙여넣은 보고서가 끝까지 왔는지 본다.
+       자동 호출 시절엔 프록시의 이어쓰기가 잘림을 막았다. 지금은 사람이 스크롤 중간에서
+       복사하거나 전체 선택에 실패해 같은 결과가 난다 — 그래서 이 검사가 더 중요하다.
+       ⚠ 경고가 떠도 저장은 막지 않는다. 판단은 사용자 몫이다. */
+    function renderCheck(text) {
+        var box = document.getElementById('check');
+        if (!text.trim()) { box.hidden = true; return null; }
+
+        var r = Career.checkReport(text, ROUND);
+        box.hidden = false;
+        box.className = 'check ' + (r.problems.length ? 'warn' : 'ok');
+
+        var head = document.createElement('div');
+        head.className = 'head';
+        head.textContent = r.problems.length
+            ? ('완결성 검사 — 확인할 점 ' + r.problems.length + '건')
+            : '완결성 검사 — 이상 없음';
+
+        var ul = document.createElement('ul');
+        r.problems.forEach(function (m) {
+            var li = document.createElement('li'); li.textContent = m; ul.appendChild(li);
+        });
+        r.passes.forEach(function (m) {
+            var li = document.createElement('li'); li.className = 'pass';
+            li.textContent = m; ul.appendChild(li);
+        });
+
+        box.innerHTML = '';
+        box.appendChild(head);
+        box.appendChild(ul);
+        return r;
+    }
+
     function info() {
         var n = ta.value.trim().length;
         document.getElementById('pasteInfo').textContent =
             n ? (n.toLocaleString() + '자 입력됨') : '아직 입력이 없습니다.';
+        renderCheck(ta.value);
     }
     ta.addEventListener('input', info);
 
     document.getElementById('saveBtn').addEventListener('click', function () {
         try {
+            var chk = Career.checkReport(ta.value, ROUND);
             var rec = Career.saveReport(kase.id, 2, ta.value);
-            Career.toast(rec.chars.toLocaleString() + '자를 저장했습니다.', 'ok');
+            Career.toast(rec.chars.toLocaleString() + '자를 저장했습니다.' +
+                (chk.problems.length
+                    ? ' ⚠ 완결성 확인 ' + chk.problems.length + '건 — ' + chk.problems[0]
+                    : ''),
+                chk.problems.length ? '' : 'ok');
             ta.value = '';
             info();
+            document.getElementById('check').hidden = true;
             renderSaved();
             document.getElementById('savedPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
         } catch (e) {

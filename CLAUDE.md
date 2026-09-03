@@ -6,31 +6,31 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 장시간 에이전트 작업을 전제로 한 **하네스**(`init.ps1` + `feature_list.json` +
 `claude-progress.md`)가 얹혀 있다. 속도보다 **재개 가능성과 실증**이 우선이다.
 
-## ⚠ 진행 중인 방향 전환 (2026-09-02)
+## ⚠ 분석 엔진 방향 전환 — 완료 (2026-09-02 착수, 2026-09-03 확정)
 
-**분석 엔진을 프록시 자동 호출 → 프롬프트 복사·붙여넣기로 바꾸는 중이다.**
-앱이 조립한 프롬프트를 사용자가 복사 → 원하는 AI 화면에 붙여넣기 → 받은 md 를
-앱에 되돌려 넣기. API 키·프록시 배포·요금·Apps Script 6분 한도가 전부 사라진다.
+**분석 엔진을 프록시 자동 호출 → 프롬프트 복사·붙여넣기로 바꿨다.** 앱이 조립한
+프롬프트를 사용자가 복사 → 원하는 AI 화면에 붙여넣기 → 받은 md 를 앱에 되돌려 넣는다.
+API 키·프록시 배포·요금·Apps Script 6분 한도가 전부 사라진다.
 
-**진로상담 화면·JS 는 2026-09-02 전부 폐기했다.** 지금 이 저장소에 진로상담 앱은 없다.
-남은 것은 로그인 데모 + 프롬프트 원문 + 도구뿐이다.
-
-- 계획: `feature_list.json` 의 `paste-001`~`006` (전부 `not_started`)
-- 폐기한 기능은 `retired` 상태로 두고 **evidence 를 남겼다** — 다시 만들 때
-  무엇을 만족해야 하는지가 거기 있다. 지우지 말 것
-- `init.ps1` 의 클라이언트 검사(`career.js` API·`fetch(endpoint)`·자산 참조)는 함께 제거했다.
-  **새 클라이언트를 만들면 그에 맞는 검사를 반드시 다시 넣을 것** — 비워 둔 채로 두면
-  하네스가 앱을 전혀 보지 않는 상태가 된다 (init.ps1 5c 주석에 적어 뒀다)
-
-**프록시(`.gs`)와 구글시트는 지우지 않았다.** 진로상담 앱이 부르지 않을 뿐,
-`careerTest` 가 같은 Apps Script 배포의 `doGet` 을 계속 쓴다.
-`.gs` 검사와 `-Live` 도 그대로 유지한다.
+- `paste-001`~`005`, `007`~`009` 는 `passing`. `paste-006`(프록시 경로 은퇴 여부
+  결정)도 2026-09-03 **완전 제거**로 확정해 `passing`이다. 남은 건 보류된
+  `auth-006`(서버 인증)·`auth-007`(실제 OAuth) 둘뿐
+- **2026-09-03: `tools/career_proxy.example.gs` 를 이 저장소에서 완전히 지웠다.**
+  이유는 newPrjt01(형제 저장소)에서 같은 백엔드로 실측한 결과다 — 웹검색을 꺼도
+  2차 분석이 ~3분(newPrjt02 는 2분 이내)이었고, 이틀 테스트에 API 크레딧 $20 이
+  소진됐다. 상세 근거는 `claude-progress.md` Session 016
+- 폐기한 기능은 `retired` 상태로 두고 **evidence 를 남겼다** — 지우지 말 것
+  (이번 프록시 제거로 `career-008`·`setup-003` 도 `retired` 로 옮겼다)
+- **프록시 참고 구현은 이제 이 저장소에 없다.** `careerTest`(형제 프로젝트)와
+  구글시트 기록은 계속 동작한다 — 같은 Apps Script 배포의 `doGet` 을 쓰는데, 그
+  배포·유지보수는 newPrjt01 이 담당한다(그쪽은 여전히 프록시를 실사용 중이라 사본을
+  가지고 있다). **이 저장소에서 그 코드가 다시 필요하면 newPrjt01 의 `tools/career_proxy.example.gs`
+  를 본다 — 새로 쓰지 말 것.**
 
 ## Commands
 
 ```powershell
-.\init.ps1                       # 검증만 (저장소 안의 텍스트만 본다, ~68개 항목)
-.\init.ps1 -Live                 # + 배포된 프록시 /exec 실호출로 버전 대조 (외부 연결 세션이면 필수)
+.\init.ps1                       # 검증만 (저장소 안의 텍스트만 본다)
 .\init.ps1 -Start                # 검증 후 http://localhost:8941/ 기동
 .\init.ps1 -Start -OpenBrowser   # 기동 + 브라우저
 .\init.ps1 -Port 9000 -Start     # 포트 변경
@@ -65,59 +65,51 @@ start http://localhost:8941/tools/obsidian-check.html   # 옵시디언 연결 5�
 
 ### 정적 앱 (빌드 없음, 서버 없음)
 
-지금 남아 있는 것은 **로그인 데모뿐**이다. 진로상담 화면·JS 는 폐기했다.
-새 페이지는 아래 방식으로 붙인다.
+로그인 데모 + 진로상담(복사·붙여넣기 방식) 두 벌이다.
 
 - `assets/auth.js` → `window.Auth` — PBKDF2-SHA256(10만회)+솔트 해싱, `np_users`/`np_session`,
   `requireAuth()` 가드. **Web Crypto 를 쓰므로 `file://` 로 열면 동작하지 않는다.**
-- ~~`assets/career.js` → `window.Career`~~ — **폐기됨(2026-09-02).** git 이력에 있다
-- ~~`assets/career-prompts.js`~~ — 폐기됨. 생성기 `tools/build-prompts.py` 와
-  원본 `assets/prompts/*.txt`(43KB)는 **그대로 남겼다** — 새 버전의 재료다
+- `assets/career.js` → `window.Career` — 2026-09-02 **복사·붙여넣기 방식으로 새로 작성**
+  (이전 72KB 프록시 자동 호출 버전은 git 이력에만 있다). AI 를 직접 부르지 않는다 —
+  프롬프트를 **조립**하고, 사용자가 복사해 원하는 AI 화면에 붙여넣은 뒤 받은 md 를
+  앱에 되돌려 넣으면 **보관·렌더**만 한다. 공개 API 26종, `fetch(endpoint)` 같은
+  자동 호출 경로 없음(`init.ps1` 이 이를 직접 검사한다 — 되살아나면 FAIL)
+- ~~`assets/career-prompts.js`~~ — 폐기됨(생성물 자체가 불필요 — 아래 참고).
+  원본 `assets/prompts/*.txt`(43KB)는 그대로 단일 원본이다
+- 프롬프트 원문은 `career.js` 가 `assets/prompts/*.txt` 를 **직접 `fetch`** 한다 —
+  `tools/build-prompts.py` 로 미리 생성하지 않는다(newPrjt01 은 생성 방식을 쓰지만
+  이 저장소는 그 빌드 단계 자체를 없앴다)
 
-흐름: `index → login → home`. 진로상담 경로는 `paste-001`~`006` 으로 새로 만든다.
+흐름: `index → login → career.html`(진입) → `career-step1 → career-report1(붙여넣기)
+→ career-step2 → career-report2(붙여넣기)`. `home.html` 은 2026-09-02 완전 폐기했다
+(로그인 성공은 `career.html` 로 바로 간다) — 되살아나면 `init.ps1` 이 잡는다.
 
-### AI 프록시 (이 저장소 밖에서 돌아간다 — 이제 careerTest 전용)
+### AI 프록시 — 이 저장소에서 완전히 제거됨 (2026-09-03, `paste-006`)
 
-⚠ **진로상담 앱은 더 이상 이 경로를 쓰지 않는다**(2026-09-02 복사·붙여넣기로 전환).
-아래는 `careerTest` 와 구글시트 기록을 위해 **남겨 둔** 인프라 설명이다.
+**`tools/career_proxy.example.gs` 는 더 이상 이 저장소에 없다.** 진로상담 앱이
+API 를 직접 부르지 않으므로 참고 구현을 보관할 이유가 사라졌다 — newPrjt01 실측
+(웹검색을 꺼도 느림, 비용 부담)이 그 근거다. `init.ps1` 은 이 파일이 **되살아나면
+FAIL**(paste-006 의 반대 방향 뒤집기)한다.
 
-Apps Script 웹앱 하나가 **두 앱을 함께** 받는다.
-
-| 경로 | 앱 | 비고 |
-|---|---|---|
-| `GET ?prompt=...` | 형제 프로젝트 `careerTest` | 고정 system, HTML 출력 — **건드리면 그쪽이 죽는다** |
-| `POST {system, prompt, ...}` | 이 앱 | `text/plain` 으로 보낸다 (GAS CORS preflight 회피) |
-
-- 저장소에는 `tools/career_proxy.example.gs`(키 없음)만 둔다. 실 파일 `career_proxy.gs` 와
-  `local.endpoint.txt`(배포 `/exec` URL)는 `.gitignore` 로 막혀 있다 — **지우지 말 것.**
-- **버전 대조가 3중이다.** `.gs` 의 `PROXY_VERSION` ↔ `career.js` 의
-  `EXPECTED_PROXY_VERSION`(현재 `1.7.2`) ↔ 배포본이 응답하는 `version`.
-  `.gs` 를 고치면 셋을 같이 올리고 **배포 관리 → 편집 → 새 버전**으로 재배포한다.
-  ("새 배포"를 만들면 `/exec` URL 이 바뀌어 careerTest 가 끊긴다.)
-  저장소만 고치고 재배포를 잊는 사고가 실제로 있었고, `-Live` 가 그걸 잡는다.
-- 프록시가 사용자별 토큰 사용량을 careerTest 구글 시트의 전용 탭
-  `진로상담 토큰로그` 에 기록한다. 공용 탭 `토큰로그` 미러링은 **v1.8.0 에서 껐다**
-  (이중 기록). 코드는 `MIRROR_TO_SHARED=false` 로 남아 있고 `init.ps1` 이 이 값을 검사한다.
-  되돌린다면 공용 탭의 **8열 형식은 절대 바꾸지 말 것** — careerTest 집계가 깨진다.
+`careerTest`(형제 프로젝트)는 같은 Apps Script 배포의 `doGet` 을 계속 쓰지만, 그건
+이 저장소가 지운 파일과 무관하게 원래부터 독립적으로 동작한다 — 그 배포·`.gs`
+유지보수는 **newPrjt01** 이 담당한다. 프록시 코드가 다시 필요해지면(예: 대량 처리용
+배치 API 검토) `C:\myPrjt01\newPrjt01\tools\career_proxy.example.gs` 를 본다 —
+이 저장소에서 새로 쓰지 말 것.
 
 ### 자주 밟는 지뢰
 
 - `init.ps1` 은 **UTF-8 BOM** 이어야 한다. 없으면 PS 5.1 이 cp949 로 읽어 파서가 죽는다.
   (init.ps1 이 자기 BOM 을 검사한다.) 나머지 텍스트 파일은 U+FFFD 가 섞이면 실패한다.
 - **Windows PowerShell 5.1** 호환만 쓴다 — `&&`, 삼항연산자, `??` 금지.
-- 모델별 요청 형태가 다르다. Haiku 4.5 는 `web_search_20250305` 만 받고
-  `output_config.effort` 를 보내면 400 이다. 프록시의 `supportsNewWebTools_` /
-  `supportsEffort_` 분기를 없애지 말 것.
-- Apps Script 는 **실행 6분에서 강제 종료**된다. `DEFAULT_EFFORT=low`,
-  `MAX_CONTINUATIONS<=2`, `DEADLINE_MS=4분` 이 그 방어선이다.
-- 보고서 끝단(STEP 11 최종 브리프·면책 문장) 잘림이 네 번 재발했다.
-  보고서 산출 경로를 건드렸으면 **눈으로 보지 말고** `tools/check-report.py` 로 확인한다.
-- `sk-ant-` 문자열이 저장소 어디든 들어가면 검증이 실패한다.
-- **배포된 `/exec` URL 도 소스에 박으면 실패한다.** 설정은 오리진별 `localStorage` 라
-  다른 주소(GitHub Pages 등)에서는 [연결 설정]을 다시 넣어야 하는데, 그걸 피하려고
-  `DEFAULT_CONFIG.endpoint` 에 박으면 공개 소스로 URL 이 새어 누구나 이 계정의
-  API 키로 호출한다. URL 은 `local.endpoint.txt` 에만 둔다(자리표시자 `.../exec` 는 무해).
+- 보고서 끝단(STEP 11 최종 브리프·면책 문장) 잘림이 과거(프록시 시절) 네 번 재발했다.
+  복사·붙여넣기 방식에서는 **사람이 스크롤 중간에서 복사하거나 전체 선택에 실패해**
+  같은 증상이 난다 — `career.js` 의 완결성 검사(`paste-003`)와 `tools/check-report.py`
+  가 그걸 잡는다. 붙여넣기 경로를 건드렸으면 눈으로 보지 말고 이걸로 확인한다.
+- `sk-ant-` 문자열이 저장소 어디든 들어가면 검증이 실패한다 — 이 앱은 API 키를
+  다루지 않으므로 원래 나올 일이 없어야 정상이다.
 - 학생 개인정보가 담긴 `*.report.md` / `reports/` 는 커밋 금지(`.gitignore`).
+- `tools/career_proxy.example.gs` 를 다시 만들지 말 것 — 위 절 참고.
 
 ## Operating Loop
 
@@ -127,7 +119,7 @@ Apps Script 웹앱 하나가 **두 앱을 함께** 받는다.
 2. `claude-progress.md` 읽기 (최근 세션 로그 + 검증된 상태).
 3. `feature_list.json` 읽기 (기능 상태의 단일 원본).
 4. `git log --oneline -5`.
-5. `.\init.ps1` 실행. 외부 연결(프록시·시트·옵시디언)을 건드릴 세션이면 `.\init.ps1 -Live`.
+5. `.\init.ps1` 실행.
 6. 베이스라인이 이미 깨져 있으면 **그것부터** 고친다. 깨진 위에 새 기능을 쌓지 않는다.
 
 그다음 미완 기능을 **정확히 하나** 골라, 검증하거나 막힌 이유를 기록할 때까지 그것만 한다.

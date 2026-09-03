@@ -40,8 +40,7 @@
 
 | 옵션 | 동작 |
 |---|---|
-| `.\init.ps1` | 검증만 수행 (76개 항목) |
-| `.\init.ps1 -Live` | + 배포된 프록시까지 확인 (careerTest·시트용, 진로상담과 무관) |
+| `.\init.ps1` | 검증만 수행 |
 | `.\init.ps1 -Start` | 검증 후 로컬 서버 기동 |
 | `.\init.ps1 -Start -OpenBrowser` | 기동 후 브라우저까지 열기 |
 | `-Port 9000` | 포트 변경 (기본 **8941**) |
@@ -143,15 +142,16 @@ python tools/check-report.py <보고서.md>
 
 → 남은 과제는 `feature_list.json` 참고. 보류: `auth-006`(서버 인증) · `auth-007`(실제 OAuth).
 
-## 남겨 둔 인프라 — careerTest 공용
+## 프록시 — 이 저장소에서 완전히 제거됨 (2026-09-03)
 
-`tools/career_proxy.example.gs` 와 구글시트 기록은 **지우지 않았다.**
-진로상담 앱은 더 이상 부르지 않지만, 형제 프로젝트 `careerTest` 가 같은 Apps Script
-배포의 `GET` 경로를 계속 쓴다.
+`tools/career_proxy.example.gs` 를 이 저장소에서 지웠다. 형제 저장소 newPrjt01
+에서 같은 백엔드로 실측한 결과 프롬프트 복사 방식보다 느리고(2차 ~3분) 비용
+부담이 커서(이틀 테스트 API 크레딧 $20 소진), 이 방향을 계속 밀지 않기로 했다
+— 근거는 `claude-progress.md` Session 016.
 
-> ⚠ `.gs` 의 `doGet` 을 지우면 careerTest 가 죽는다.
-> 배포는 **배포 관리 → 편집 → 새 버전** 으로 한다("새 배포"는 `/exec` URL 이 바뀐다).
-> `.\init.ps1 -Live` 가 배포본 버전을 실제로 조회해 대조한다.
+형제 프로젝트 `careerTest` 는 같은 Apps Script 배포의 `doGet` 경로를 여전히 쓰지만,
+그건 이 저장소가 지운 파일과 무관하게 독립적으로 동작한다. 그 배포·`.gs` 유지보수는
+**newPrjt01** 이 계속 담당한다 — 필요하면 그쪽 사본을 본다.
 
 ## 에이전트 하네스
 

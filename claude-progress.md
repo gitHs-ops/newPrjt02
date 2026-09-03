@@ -9,6 +9,10 @@ Codex·OpenHands 등 어떤 코딩 에이전트도 쓸 수 있다. 어떤 에이
 
 ## Current Verified State
 
+(이 절은 2026-09-03 Session 016 기준으로 다시 썼다 — 그 전 버전은 2026-08-31
+프록시 활성 시절 것이 방치돼 있었다. 실제 판단은 항상 `feature_list.json` 을
+원본으로 볼 것.)
+
 - **Repository root**: `C:\myPrjt01\newPrjt02`
 - **원격**: `gitHs-ops/newPrjt02` (Private, 2026-09-02 신규). 이전 프로젝트의 커밋 이력은
   `gitHs-ops/newPrjt01` 저장소와 로컬 `C:\myPrjt01\newPrjt01` 폴더에 그대로 있다 —
@@ -17,46 +21,39 @@ Codex·OpenHands 등 어떤 코딩 에이전트도 쓸 수 있다. 어떤 에이
   브라우저 `localStorage`(계정·사례·연결 설정)가 서로 섞이지 않는다
 - **Standard startup path**: `.\init.ps1` (Windows PowerShell)
   - `.\init.ps1` — 검증만 / `.\init.ps1 -Start` — 검증 후 서버 기동 / `-OpenBrowser` — 브라우저까지 염
-  - `.\init.ps1 -Live` — **배포된 프록시까지 확인**(권장). `local.endpoint.txt` 에 `/exec` URL 필요
   - ⚠ **`init.ps1` 은 반드시 UTF-8 BOM 으로 저장할 것.** Windows PowerShell 5.1 은 BOM 없는
     `.ps1` 을 cp949 로 읽어 한글 문자열이 깨지고 파서 오류가 난다(2026-08-31 실제 발생)
-- **Standard verification path**: `init.ps1` 에 포함 — 하네스 5파일 + 로그인 7파일 +
-  진로상담 14파일 존재, HTML 무결성 10건, 공통자산 참조 9건, `auth.js` API 8종 + PBKDF2,
-  `career.js` API 11종 + fetch 경로 + 옵시디언 스텁 + 웹검색 지시 + 출처 경로,
-  프록시 예시 4종, **저장소 내 `sk-ant-` 키 문자열 검사**, 프롬프트 생성물 동기화,
-  `home.html`→`career.html` 링크, JSON 파싱, `python`, 포트.
-  **68개 항목 전부 통과해야 exit 0**
 - **Standard start command**: `python -m http.server 8941` → http://localhost:8941/
   (`.claude/launch.json` 의 `newPrjt02-static` 과 동일 포트)
-- **Current highest-priority unfinished feature**: 없음. 남은 3건은 사용자 판단 대기 항목뿐이다
-  (`paste-006` 형식상 정리, `auth-006`·`auth-007` 보류). `home.html` 은 2026-09-02 폐기했다(Session 015).
-  `in_progress` 는 0건이다.
-- **Current blocker**: 없음. `init.ps1` 이 새 방향을 막던 문제는 2026-09-02 해소했다
-  (클라이언트 검사 제거 + 폐기 코드 부활 감시로 전환)
-- 하네스가 앱을 다시 본다 — Session 009 에서 새 클라이언트 검사 8건을 넣었다.
-  검사 48 → **66개**
-- **운영 상태**: AI 프록시·공식자료 웹검색·옵시디언 전송·토큰 사용량 시트 기록까지 실동작 확인.
-  시트 `웹도구` 열 = `basic` 실기동 확인(2026-09-01).
-  ⚠ **프록시 v1.8.0(공용 탭 미러링 중단) 재배포 대기 중** — 저장소=1.8.0 / 배포=1.7.2
+- **Current highest-priority unfinished feature**: 없음. 남은 건 보류된
+  `auth-006`(서버 인증)·`auth-007`(실제 OAuth) 둘뿐. `in_progress` 는 0건이다.
+- **Current blocker**: 없음.
+- **운영 상태**: 진로상담 복사·붙여넣기 전 구간(1차 입력→프롬프트 복사→붙여넣기→
+  2차 입력→프롬프트 복사→붙여넣기→합본 저장) 실기동 확인. AI 호출·프록시·시트
+  기록·옵시디언 전송은 이 앱에 없다(사람이 직접 AI 화면에 붙여넣는다).
+  `.\init.ps1` → **79개 항목 [OK], exit 0**(Session 016 기준)
 
 ## 이 저장소의 성격
 
 - **정적 HTML 앱 두 벌.** 빌드 단계 없음, `package.json` 없음, npm 사용 안 함
 - **① 로그인 데모** — `index.html`(랜딩) · `login.html` · `signup.html` ·
-  `home.html`(성공) · `error.html`(실패), 공통 자산 `assets/auth.css` · `assets/auth.js`
+  `error.html`(실패), 공통 자산 `assets/auth.css` · `assets/auth.js`.
+  `home.html` 은 2026-09-02 완전 폐기 — 로그인 성공은 `career.html` 로 바로 간다
   - 계정 저장소는 **localStorage**(`np_users`) — 테스트 목적으로 사용자가 명시 허가.
     다만 **비밀번호는 평문이 아니라 PBKDF2-SHA256(10만회) + 사용자별 랜덤 솔트 해시**로 보관
   - 세션: 상태유지 켬 → `localStorage`, 끔 → `sessionStorage` (키 `np_session`)
-- **② 진로상담 분석** — `career.html`(홈) · `career-step1` → `career-report1` →
-  `career-step2` → `career-report2`, 공통 자산 `assets/career.css` · `assets/career.js` ·
-  `assets/career-prompts.js`(자동 생성)
-  - 사례 저장소는 **localStorage**(`np_career_cases`), 설정은 `np_career_config`
-  - 프롬프트 원문은 `assets/prompts/*.txt` 가 단일 원본,
-    `python tools/build-prompts.py` 로 `career-prompts.js` 를 재생성한다
-  - AI 호출은 **프록시 경유**(POST · text/plain). 프록시 미설정 시 **모의 응답**으로만 동작
-  - 프록시는 Anthropic **서버사이드 web_search 도구**로 공식자료를 조회한다.
-    참고 구현 `tools/career_proxy.example.gs` (키는 스크립트 속성에만 둔다)
-  - `home.html` 에서 진입한다 (로그인 필요)
+- **② 진로상담 분석 (복사·붙여넣기 방식)** — `career.html`(홈) · `career-step1` →
+  `career-report1` → `career-step2` → `career-report2`, 공통 자산
+  `assets/career.css` · `assets/career.js`
+  - 사례 저장소는 **localStorage**(`np_career_cases`)
+  - 프롬프트 원문은 `assets/prompts/*.txt` 가 단일 원본 — `career.js` 가 직접
+    `fetch` 한다(생성 단계 없음, `career-prompts.js` 는 폐기됨)
+  - **AI 를 직접 부르지 않는다.** 앱은 프롬프트를 조립·표시하고, 사용자가 복사해
+    원하는 AI 화면(Claude/ChatGPT/Gemini/Perplexity 중 선택)에 붙여넣은 뒤 받은
+    md 를 앱에 되돌려 넣으면 완결성 검사 후 보관·렌더한다
+  - 프록시(`tools/career_proxy.example.gs`)는 2026-09-03 이 저장소에서 완전히
+    제거했다(`paste-006`, 근거는 아래 Session 016) — 필요하면 newPrjt01 의 사본을 본다
+  - `career.html` 에서 진입한다 (로그인 필요)
 - 상위 `C:\myPrjt01\CLAUDE.md` 의 워크스페이스 지침도 함께 적용된다
 
 ## Session Log
@@ -1186,3 +1183,56 @@ Session 014 에서 남겨 뒀던 판단 사항 — "로그인 성공 리다이�
 - **클립보드 바이트 단위 일치** — 여전히 사람이 한 번 실제 AI 화면에 붙여넣어야 닫힌다
 - `paste-006`(형식상 남은 항목) · 보류 `auth-006`·`auth-007`
 - (해소) README 의 "화면" 표·진입 문구·인증 한계 절에 남아 있던 `home.html` 참조 3곳도 이 세션에서 함께 정리했다
+
+### Session 016 — 프록시 경로 완전 제거 (`paste-006` 확정)
+
+#### 배경
+
+`paste-006`(프록시 경로 은퇴 여부 결정)이 마지막 선행 결정으로 남아 있었다.
+형제 저장소 newPrjt01 에서 같은 프록시 백엔드를 Vercel Edge Functions 로 옮기고
+스트리밍까지 붙여 실측한 결과(2026-09-02~03, newPrjt01 Session 010~012)를
+근거로 사용자가 **완전 제거**를 확정했다:
+
+- 웹검색을 꺼도 2차 분석이 여전히 ~3분 — 병목은 검색이 아니라 모델의 긴 글
+  생성·이어쓰기 자체였다.
+- newPrjt02(이 저장소, 프롬프트 복사 방식)가 이미 2분 이내로 더 빠르다.
+- 이틀 테스트 동안 API 크레딧 $20 소진 — 애초에 이 전환을 시작한 동기(비용 부담)가
+  실측으로 재확인됐다.
+
+#### 한 일
+
+1. `tools/career_proxy.example.gs` 삭제(`git rm`, 이력에 남아 복원 가능)
+2. **`init.ps1`**
+   - `-Live` 스위치·파라미터·도움말 제거(대조할 참고 구현이 더 이상 없음)
+   - `$careerFiles` 존재 목록에서 `tools\career_proxy.example.gs` 제거
+   - 프록시 내용을 검사하던 블록(웹검색·이어달리기·버전·-Live 실배포 대조·시트
+     기록·미러링·doGet 보존 등 10건)을 통째로 걷어내고, **반대 방향** 검사
+     하나로 교체 — "career_proxy.example.gs 가 없어야 통과, 되살아나면 FAIL"
+     (newPrjt01 Session 015 의 home.html 폐기 때와 같은 패턴: Test-Path 가드로
+     조용히 스킵되게 두지 않고 명시적으로 뒤집었다)
+3. **`feature_list.json`**
+   - `paste-006` → `passing`, evidence·notes 기록(결정·삭제·init.ps1 변경·재검증)
+   - `career-008`(AI 프록시 배포)·`setup-003`(하네스가 배포본 대조) → `retired`.
+     기존 evidence 는 보존하고 제거 사유만 notes 에 덧붙였다(지우지 않았다)
+4. **문서 갱신** — `CLAUDE.md`·`AGENTS.md`·`README.md`·`session-handoff.md` 의
+   프록시·`-Live` 관련 서술을 전부 "완전히 제거됨" 기준으로 다시 썼다. 특히
+   `session-handoff.md` 는 2026-09-02 시점의 낡은 초안("프록시는 남긴다")이
+   실제 feature_list.json 상태(그때도 `not_started`)와 어긋난 채 방치돼 있던 것을
+   바로잡았다 — 그 초안은 실행되지 않은 판단이었다.
+
+#### Verification run
+
+- `.\init.ps1` → **79개 항목 전부 `[OK]`, exit 0**
+  (`[OK] 프록시 참고 구현 폐기 확인 (career_proxy.example.gs 없음)` 포함)
+- `feature_list.json` 파싱 성공, `passing` 16건 전부 근거 보유 확인(하네스 자체 검사로 통과)
+
+#### 상태
+
+`passing` **16** · `retired` **12** · `not_started` 2(`auth-006`·`auth-007`, 보류) ·
+`in_progress` 0 (총 30)
+
+#### 남은 것
+
+- `auth-006`(서버 인증)·`auth-007`(실제 OAuth) — 보류
+- 사람이 실제 AI 화면에 붙여넣는 실기동을 몇 차례 더 쌓아 클립보드 경로 신뢰도를
+  높이는 것 — 자동 검증은 구조적으로 안 된다(`clipboard.readText` 권한 차단)

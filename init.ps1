@@ -6,18 +6,21 @@
 
     사용법:
       .\init.ps1                    검증만 수행 (저장소 안만 본다)
-      .\init.ps1 -Live              + 실제 배포된 프록시까지 확인 (권장)
       .\init.ps1 -Start             검증 후 로컬 서버 기동
       .\init.ps1 -Start -OpenBrowser  기동 후 브라우저까지 염
 
     Windows PowerShell 5.1 호환 (&&, 삼항연산자, ?? 미사용).
+
+    ⚠ 2026-09-03 (paste-006): 프록시 경로를 완전히 제거했다(tools/career_proxy.example.gs
+    삭제). 예전에는 -Live 스위치로 careerTest 공유 배포본을 실제로 GET 해 버전을 대조했으나,
+    이 저장소가 그 참고 구현을 더 이상 보관하지 않으므로 대조 대상이 없다. 그 실측(배포본
+    버전 확인)이 여전히 필요하면 newPrjt01(같은 배포를 공유하는 형제 저장소)에서 한다.
 #>
 
 [CmdletBinding()]
 param(
     [switch]$Start,
     [switch]$OpenBrowser,
-    [switch]$Live,
     [int]$Port = 8941
 )
 
@@ -75,7 +78,6 @@ $careerFiles = @(
     'assets\prompts\input-2nd.txt',
     'tools\build-prompts.py',
     'tools\check-report.py',
-    'tools\career_proxy.example.gs',
     'tools\obsidian-check.html'
 )
 foreach ($f in $careerFiles) {
@@ -331,119 +333,16 @@ if (Test-Path -LiteralPath 'assets\career.js' -PathType Leaf) {
     }
 }
 
-# 5c-2) 프록시 참고 구현이 웹검색을 켜는가
+# 5c-2) 프록시 경로 폐기 확인 (paste-006, 2026-09-03) — 되살아나면 FAIL.
+#   전에는 여기서 tools/career_proxy.example.gs 의 내용(웹검색·이어달리기·버전 등)과
+#   -Live 로 실제 배포본까지 대조했다. 그 참고 구현을 이 저장소에서 완전히 지우기로
+#   했으므로(같은 배포를 쓰는 careerTest·시트 기록은 newPrjt01 이 계속 관리한다),
+#   대상이 없어진 검사를 Test-Path 가드로 조용히 건너뛰게 두지 않고 반대 방향
+#   (파일이 없어야 통과)으로 뒤집는다 — newPrjt01 Session 015 의 home.html 폐기 때와 같은 방식.
 if (Test-Path -LiteralPath 'tools\career_proxy.example.gs' -PathType Leaf) {
-    $gs = Get-Content -LiteralPath 'tools\career_proxy.example.gs' -Raw -Encoding UTF8
-    $needed = @('web_search_20260209', 'pause_turn', 'web_search_tool_result', 'doPost',
-                'DEADLINE_MS', 'output_config')
-    $missing = @()
-    foreach ($k in $needed) {
-        if ($gs -notmatch [regex]::Escape($k)) { $missing += $k }
-    }
-    if ($missing.Count -eq 0) {
-        Write-Ok "프록시 예시가 웹검색·이어달리기·시간가드·effort 를 구현 ($($needed.Count)종)"
-    } else {
-        Write-Fail "career_proxy.example.gs 에서 누락: $($missing -join ', ')"
-    }
-
-    # 모델별 요청 형태 차이를 흡수하는가 —
-    # Haiku 4.5 는 동적 필터링 웹검색(_20260209)과 output_config.effort 를 받지 못한다.
-    # 이 분기가 사라지면 Haiku 로 호출할 때 400 이 난다.
-    if ($gs -match 'supportsNewWebTools_' -and $gs -match 'supportsEffort_' -and
-        $gs -match 'web_search_20250305') {
-        Write-Ok "프록시가 모델별 도구·effort 지원 여부를 분기"
-    } else {
-        Write-Fail "career_proxy.example.gs 에 모델별 분기가 없음 — Haiku 계열에서 400 이 난다"
-    }
-
-    # Apps Script 6분 한도 대비 — 이어달리기를 늘려 놓으면 응답 없이 매달린다(2026-09-01 실제 발생)
-    if ($gs -match 'MAX_CONTINUATIONS\s*=\s*[0-2]\b') {
-        Write-Ok "이어달리기 상한이 안전 범위(0~2)"
-    } else {
-        Write-Fail "MAX_CONTINUATIONS 가 너무 큼 — Apps Script 6분 한도를 넘겨 응답 없이 매달린다"
-    }
-
-    # 프록시 버전 — 클라이언트(career.js) 쪽 대조는 2026-09-02 사라졌다.
-    #   복사·붙여넣기로 바꾸면서 클라이언트가 프록시를 부르지 않는다.
-    #   .gs 는 careerTest 와 구글시트 기록 때문에 남아 있으므로, 배포본 대조(-Live)는 계속 쓴다.
-    $pv = ''
-    if ($gs -match "PROXY_VERSION\s*=\s*'([0-9.]+)'") { $pv = $Matches[1] }
-    if ($pv) {
-        Write-Ok "프록시 버전 확인 ($pv) — 이제 careerTest·시트 기록 전용이다"
-    } else {
-        Write-Fail "career_proxy.example.gs 에서 PROXY_VERSION 을 찾지 못함"
-    }
-
-    # 5c-4) 실제 배포본 확인 (-Live)
-    #   위 검사는 전부 "저장소 안의 텍스트"만 본다. 코드를 고쳐 놓고 Apps Script 재배포를
-    #   잊으면 전부 [OK] 인데 실제로는 낡은 프록시가 돌아간다 — 2026-09-01 세션의 최대
-    #   시간 손실이 이것이었고, 3분짜리 분석을 돌린 뒤에야 알았다. 여기서 30초에 잡는다.
-    if ($Live) {
-        $epFile = 'local.endpoint.txt'
-        if (-not (Test-Path -LiteralPath $epFile -PathType Leaf)) {
-            Write-Fail "-Live 인데 $epFile 이 없다 — 배포된 /exec URL 을 한 줄 넣을 것 (git 추적 안 됨)"
-        } else {
-            $ep = (Get-Content -LiteralPath $epFile -Raw -Encoding UTF8).Trim()
-            if ($ep -notmatch '^https://script\.google\.com/.+/exec$') {
-                Write-Fail "$epFile 이 /exec URL 형식이 아니다: $ep"
-            } else {
-                try {
-                    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-                    $resp = Invoke-WebRequest -Uri $ep -UseBasicParsing -TimeoutSec 30
-                    $liveVer = ''
-                    if ($resp.Content -match '"version"\s*:\s*"([0-9.]+)"') { $liveVer = $Matches[1] }
-                    if (-not $liveVer) {
-                        Write-Fail "배포본이 version 을 응답하지 않는다 — 낡은 배포이거나 /exec 가 다른 스크립트다"
-                    } elseif ($liveVer -eq $pv) {
-                        Write-Ok "배포본 살아있음 · 버전 일치 ($liveVer)"
-                    } else {
-                        Write-Fail "배포본이 낡았다 — 배포=$liveVer / 저장소=$pv (배포 관리 -> 편집 -> 새 버전)"
-                    }
-                } catch {
-                    Write-Fail "배포본에 닿지 못함: $($_.Exception.Message)"
-                }
-            }
-        }
-    } else {
-        Write-Note "참고: 실제 배포본은 확인하지 않았다 — .\init.ps1 -Live 로 확인할 수 있다"
-    }
-
-    # 시트 기록 실패를 조용히 삼키지 않는가 (안 쌓이는 걸 알 방법이 있어야 한다)
-    if ($gs -match 'lastLogError' -and $gs -match 'test5_sheet') {
-        Write-Ok "시트 기록 실패 노출 · 권한 점검 함수 존재"
-    } else {
-        Write-Fail "시트 기록 실패가 조용히 묻힌다 — lastLogError / test5_sheet 확인"
-    }
-
-    # 잘린 응답 이어쓰기 — 2차 보고서의 최종 브리프·면책 문장이 끝에 있어 필수다
-    if ($gs -match 'MAX_TEXT_CONTINUATIONS' -and $gs -match 'supportsPrefill_' -and
-        $gs -match 'COMPLETION_SUFFIX') {
-        Write-Ok "잘린 응답 이어쓰기 · 끝맺음 지시 존재"
-    } else {
-        Write-Fail "career_proxy.example.gs 에 이어쓰기 경로가 없음 — 보고서 끝단이 잘려 나간다"
-    }
-
-    # 토큰 사용량 기록 — careerTest 공용 탭 형식을 건드리면 그쪽이 깨진다
-    if ($gs -match 'logUsage_' -and $gs -match 'SHARED_HEADERS' -and $gs -match 'USAGE_SHEET_NAME') {
-        Write-Ok "토큰 사용량 시트 기록 경로 존재 (전용 탭 + 되돌릴 수 있는 미러링 코드)"
-    } else {
-        Write-Fail "career_proxy.example.gs 에 토큰 사용량 기록 경로가 없음"
-    }
-
-    # v1.8.0 — 공용 '토큰로그' 탭 미러링을 껐다(한 분석이 두 탭에 이중으로 남던 문제).
-    # 코드는 되돌릴 수 있게 남겨 두므로, 플래그가 다시 true 로 새어 들어오지 않는지 본다.
-    if ($gs -match 'MIRROR_TO_SHARED\s*=\s*false') {
-        Write-Ok "공용 탭 미러링 꺼짐 (전용 탭에만 기록 — 이중 기록 없음)"
-    } else {
-        Write-Fail "MIRROR_TO_SHARED 가 false 가 아님 — 공용 '토큰로그' 탭에 이중 기록된다"
-    }
-
-    # careerTest 와 배포를 공유하므로 기존 GET 경로가 살아 있어야 한다
-    if ($gs -match 'function doGet' -and $gs -match 'CAREERTEST_SYSTEM') {
-        Write-Ok "프록시 예시가 careerTest GET 경로를 보존 (배포 공유 가능)"
-    } else {
-        Write-Fail "career_proxy.example.gs 에 careerTest 용 doGet 경로가 없음 — 배포를 덮으면 careerTest 가 죽는다"
-    }
+    Write-Fail "tools\career_proxy.example.gs 가 되살아났다 — paste-006 결정(완전 제거)과 어긋난다"
+} else {
+    Write-Ok "프록시 참고 구현 폐기 확인 (career_proxy.example.gs 없음)"
 }
 
 # 5c-3) API 키가 저장소에 섞여 들어가지 않았는가 (careerTest 프록시 복사 사고 방지)

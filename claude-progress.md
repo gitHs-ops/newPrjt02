@@ -1236,3 +1236,59 @@ Session 014 에서 남겨 뒀던 판단 사항 — "로그인 성공 리다이�
 - `auth-006`(서버 인증)·`auth-007`(실제 OAuth) — 보류
 - 사람이 실제 AI 화면에 붙여넣는 실기동을 몇 차례 더 쌓아 클립보드 경로 신뢰도를
   높이는 것 — 자동 검증은 구조적으로 안 된다(`clipboard.readText` 권한 차단)
+
+### Session 017 — 2차 결과 붙여넣기를 career-step2.html 로 병합
+
+#### 배경
+
+사용자 요청: "2차 프롬프트" 카드 문구를 다듬고("생성하고 복사하기" 등), 무엇보다
+**실제 붙여넣을 텍스트박스를 이 페이지(career-step2.html)로 옮겨 career-report2.html
+내용을 병합**해 달라는 것. 프롬프트 복사 후 별도 페이지로 이동해야 했던 왕복을
+줄이는 게 목적이다.
+
+#### 한 일
+
+1. **`career-step2.html`**
+   - "2차 프롬프트" 카드 문구 변경: 부제 "1차 결과 + 위 입력을 붙여 전문을 만듭니다."
+     → "2차 프롬프트(1차 결과 + 위 입력)를 생성합니다.", 버튼 "프롬프트 복사" →
+     "생성하고 복사하기"
+   - `career-report2.html` 의 붙여넣기 패널(텍스트박스·완결성 검사·저장하기·지우기)과
+     저장 결과 패널(렌더·md 저장·합본 저장·결과 복사)을 그대로 옮겨왔다. id 충돌
+     회피: 붙여넣기 쪽 `clearBtn`→`pasteClearBtn`, 결과 쪽 `copyBtn`→`resultCopyBtn`
+     (프롬프트 복사 버튼이 이미 `copyBtn` 을 쓰고 있었다)
+   - 하단 내비게이션에서 페이지 이동용이던 `nextBtn`("2차 결과 붙여넣기로 →")을
+     제거 — 이동할 다음 페이지가 없어졌다
+   - STEP 안내를 "STEP 1: 추가정보 입력 → 프롬프트 생성" / "STEP 3: 이 페이지에
+     결과 붙여넣기"로 다듬고 STEP 1·3 을 모두 `on` 으로 표시(같은 페이지에서 함께
+     동작하므로)
+2. **`career-report2.html` 삭제**(`git rm`, 이력에 남아 복원 가능)
+3. **`career.html`** — `nextPageFor()` 에서 `report2` 분기를 제거. `report1` 이
+   있으면 무조건 `career-step2.html` 로 보낸다(그 안에서 report2 유무에 따라 저장된
+   결과 패널이 자동으로 나타난다)
+4. **`init.ps1`** — `career-report2.html` 을 모든 파일 목록에서 제거하고, 반대
+   방향 가드 하나를 신설("되살아나면 FAIL", home.html·프록시 폐기와 같은 패턴).
+   완결성 검사 호출 확인 루프의 대상을 `career-report2.html` → `career-step2.html`
+   로 교체
+5. **`feature_list.json`** — `paste-007` 의 verification·evidence·notes 를
+   병합 사실에 맞게 갱신(기존 evidence 는 보존, 새 evidence 추가)
+
+#### Verification run
+
+- `.\init.ps1` → **82개 항목 전부 `[OK]`, exit 0**
+  (`[OK] career-report2.html 폐기 확인` 포함)
+- 실브라우저: 사례 생성 → `Career.saveReport` 로 1차 결과 주입(빠른 검증용) →
+  `career-step2.html` 진입 → 문구 변경 확인("생성하고 복사하기", "2차결과
+  붙여넣기") → 2차 md 82자 붙여넣기 → 저장 → `savedPanel` 표시·`bothBtn` 활성화
+  확인 → 새로고침 후 유지 확인 → `career.html` 사례 목록 링크가
+  `career-step2.html` 로 라우팅됨(옛 `career-report2.html` 아님) 확인. 콘솔 에러 0
+
+#### 상태
+
+`paste-007` evidence 갱신, 상태는 그대로 `passing`(기능은 그대로 동작, 위치만
+바뀜). `feature_list.json` 항목 수·상태 분포는 Session 016 과 동일(16 passing ·
+12 retired · 2 not_started).
+
+#### 남은 것
+
+- `career-step1.html`/`career-report1.html` 은 아직 두 페이지로 분리돼 있다 —
+  1차도 같은 방식으로 합칠지는 사용자 판단 대기(요청받지 않아 손대지 않음)

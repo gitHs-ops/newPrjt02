@@ -69,7 +69,6 @@ $careerFiles = @(
     'career-step1.html',
     'career-report1.html',
     'career-step2.html',
-    'career-report2.html',
     'assets\career.js',
     'assets\career.css',
     'assets\prompts\prompt-1st.txt',
@@ -101,6 +100,15 @@ if (Test-Path -LiteralPath 'home.html' -PathType Leaf) {
     Write-Ok "home.html 폐기 확인 (로그인 성공 -> career.html 직행)"
 }
 
+# 2d-2) career-report2.html 폐기 확인 — 2026-09-03 그 내용을 career-step2.html 로
+#     합쳤다(프롬프트 복사와 결과 붙여넣기가 같은 화면). 되살아나면 그 결정이
+#     조용히 무효화된 것이다.
+if (Test-Path -LiteralPath 'career-report2.html' -PathType Leaf) {
+    Write-Fail "career-report2.html 이 되살아났다 — 2차 결과 붙여넣기는 career-step2.html 로 합쳐졌다"
+} else {
+    Write-Ok "career-report2.html 폐기 확인 (2차 결과 붙여넣기는 career-step2.html 에 통합)"
+}
+
 # 2e) login.html 이 실제로 career.html 로 보내는가 — 폐기한 home.html 참조가 남아 있으면
 #     "파일은 지웠는데 코드는 여전히 그리로 가려는" 깨진 상태가 된다.
 if (Test-Path -LiteralPath 'login.html' -PathType Leaf) {
@@ -117,7 +125,7 @@ if (Test-Path -LiteralPath 'login.html' -PathType Leaf) {
 # 3) HTML 무결성 — 비어 있지 않고 <html> 을 포함하는가
 foreach ($f in @('index.html', 'login.html', 'signup.html', 'error.html',
                  'career.html', 'career-step1.html', 'career-report1.html',
-                 'career-step2.html', 'career-report2.html')) {
+                 'career-step2.html')) {
     if (-not (Test-Path -LiteralPath $f -PathType Leaf)) { continue }
     $content = Get-Content -LiteralPath $f -Raw -Encoding UTF8
     if ($content.Length -gt 0 -and $content -match '(?i)<html') {
@@ -165,7 +173,7 @@ if (Test-Path -LiteralPath 'assets\auth.js' -PathType Leaf) {
 
 # 5b) 진로상담 화면이 공통 자산을 참조하는가
 foreach ($f in @('career.html', 'career-step1.html', 'career-report1.html',
-                 'career-step2.html', 'career-report2.html')) {
+                 'career-step2.html')) {
     if (-not (Test-Path -LiteralPath $f -PathType Leaf)) { continue }
     $c = Get-Content -LiteralPath $f -Raw -Encoding UTF8
     if (($c -match 'assets/career\.css') -and ($c -match 'assets/career\.js') -and ($c -match 'assets/auth\.js')) {
@@ -314,8 +322,9 @@ if (Test-Path -LiteralPath 'assets\career.js' -PathType Leaf) {
     }
 
     # 붙여넣기 화면이 실제로 검사를 부르는가. career.js 에만 있고 화면이 안 부르면 무용지물이다.
+    #   2차는 career-step2.html 에 병합됐다(2026-09-03) — career-report2.html 은 없다.
     $noCheck = @()
-    foreach ($f in @('career-report1.html', 'career-report2.html')) {
+    foreach ($f in @('career-report1.html', 'career-step2.html')) {
         if ((Test-Path -LiteralPath $f -PathType Leaf) -and
             ((Get-Content -LiteralPath $f -Raw -Encoding UTF8) -notmatch 'checkReport')) { $noCheck += $f }
     }
@@ -402,7 +411,7 @@ if ($pMissing.Count -eq 0 -and $pTotal -gt 30000) {
 $staleWords = @('AI 연결됨', 'AI 미설정', '모의 모드', '토큰 사용량', '연결 설정', '분석 실행')
 $stalePages = @()
 foreach ($f in @('index.html', 'career.html', 'career-step1.html',
-                 'career-report1.html', 'career-step2.html', 'career-report2.html')) {
+                 'career-report1.html', 'career-step2.html')) {
     if (-not (Test-Path -LiteralPath $f -PathType Leaf)) { continue }
     $body = Get-Content -LiteralPath $f -Raw -Encoding UTF8
     $body = [regex]::Replace($body, '(?s)<script.*?</script>', '')

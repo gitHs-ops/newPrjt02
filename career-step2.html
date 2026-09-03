@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light">
 <meta name="theme-color" content="#eef2ff">
-<title>2차 추가정보 · 프롬프트 복사 — newPrjt02</title>
+<title>2차 입력 · 프롬프트 · 결과 — newPrjt02</title>
 <link rel="stylesheet" as="style" crossorigin
       href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
@@ -18,14 +18,14 @@
 
     <div class="doc-head">
         <span class="logo">🧭</span>
-        <h1>2차 추가정보 · 프롬프트 복사</h1>
+        <h1>2차 입력 · 프롬프트 · 결과</h1>
         <span class="who" id="whoami">—</span>
     </div>
 
     <div class="steps">
-        <div class="step on"><span class="n">STEP 1</span><span class="t">추가정보 입력 → 프롬프트 복사</span></div>
+        <div class="step on"><span class="n">STEP 1</span><span class="t">추가정보 입력 → 프롬프트 생성</span></div>
         <div class="step"><span class="n">STEP 2</span><span class="t">AI 화면에 붙여넣고 실행</span></div>
-        <div class="step"><span class="n">STEP 3</span><span class="t">2차 결과를 되돌려 넣기</span></div>
+        <div class="step on"><span class="n">STEP 3</span><span class="t">이 페이지에 결과 붙여넣기</span></div>
     </div>
 
     <div class="panel">
@@ -78,9 +78,9 @@
 
     <div class="panel">
         <h2>2차 프롬프트</h2>
-        <p class="sub">1차 결과 + 위 입력을 붙여 전문을 만듭니다.</p>
+        <p class="sub">2차 프롬프트(1차 결과 + 위 입력)를 생성합니다.</p>
         <div class="btn-row">
-            <button type="button" class="btn btn-primary grow" id="copyBtn">프롬프트 복사</button>
+            <button type="button" class="btn btn-primary grow" id="copyBtn">생성하고 복사하기</button>
             <button type="button" class="btn btn-ghost" id="previewBtn">원문 보기</button>
             <select id="aiService" class="quick" style="max-width:150px;margin-bottom:0" title="열 AI 서비스 선택"></select>
             <a class="btn btn-ghost" id="aiOpenBtn" href="https://claude.ai/new" target="_blank" rel="noopener noreferrer">AI 화면 열기</a>
@@ -89,8 +89,36 @@
         <div class="mono-box" id="preview" hidden></div>
     </div>
 
+    <div class="panel">
+        <h2>2차결과 붙여넣기</h2>
+        <p class="sub">
+            AI 가 만든 2차 분석 md 를 <strong>처음부터 끝까지</strong> 복사해 붙여넣으십시오.
+            STEP 11 최종 브리프와 마지막 면책 문장까지 들어와야 온전한 보고서입니다.
+        </p>
+        <div class="field">
+            <label for="pasted">2차 분석 결과 (마크다운)</label>
+            <textarea id="pasted" rows="10" placeholder="여기에 붙여넣기 (Ctrl+V)"></textarea>
+            <p class="note" id="pasteInfo">아직 입력이 없습니다.</p>
+            <div class="check" id="check" hidden></div>
+        </div>
+        <div class="btn-row">
+            <button type="button" class="btn btn-primary grow" id="saveBtn">저장하기</button>
+            <button type="button" class="btn btn-ghost" id="pasteClearBtn">지우기</button>
+        </div>
+    </div>
+
+    <div class="panel" id="savedPanel" hidden>
+        <h2>저장된 2차 결과</h2>
+        <p class="sub" id="savedMeta"></p>
+        <div class="btn-row" style="margin-top:0;margin-bottom:14px">
+            <button type="button" class="btn btn-ghost" id="mdBtn">md 파일로 저장</button>
+            <button type="button" class="btn btn-ghost" id="bothBtn">1·2차 합본 저장</button>
+            <button type="button" class="btn btn-ghost" id="resultCopyBtn">결과 복사</button>
+        </div>
+        <div class="report" id="report"></div>
+    </div>
+
     <div class="btn-row">
-        <a class="btn btn-primary grow" id="nextBtn" href="#">2차 결과 붙여넣기로 →</a>
         <a class="btn btn-ghost" id="backBtn" href="#">← 1차 결과</a>
         <a class="btn btn-ghost" href="career.html">처음으로</a>
     </div>
@@ -114,7 +142,6 @@
         return;
     }
     document.getElementById('caseTitle').textContent = kase.label;
-    document.getElementById('nextBtn').href = 'career-report2.html?case=' + encodeURIComponent(kase.id);
     document.getElementById('backBtn').href = 'career-report1.html?case=' + encodeURIComponent(kase.id);
 
     /* 1차 결과가 없으면 2차 프롬프트의 핵심 입력이 비어 버린다 — 먼저 알린다. */
@@ -308,6 +335,111 @@
             Career.setAiService(sel.value);
             apply(Career.AI_SERVICES.filter(function (s) { return s.key === sel.value; })[0]);
         });
+    })();
+
+    /* ------------------------------------------------- 2차 결과 붙여넣기 (career-report2.html 병합)
+       예전엔 별도 페이지였다. AI 화면에서 붙여넣고 돌아오는 왕복을 줄이려고 이 페이지에
+       합쳤다 — 프롬프트 복사와 결과 붙여넣기가 같은 화면에 있다. */
+    (function initPaste() {
+        var pasteTa = document.getElementById('pasted');
+        var ROUND = 2;
+
+        function renderSaved() {
+            kase = Career.getCase(kase.id);
+            var rep = kase.report2;
+            var panel = document.getElementById('savedPanel');
+            if (!rep) { panel.hidden = true; return; }
+            panel.hidden = false;
+            document.getElementById('savedMeta').textContent =
+                new Date(rep.at).toLocaleString('ko-KR') + ' 저장 · ' +
+                rep.chars.toLocaleString() + '자 · 붙여넣기';
+            document.getElementById('report').innerHTML = Career.mdToHtml(rep.md);
+            /* 합본은 1차가 있어야 만들 수 있다 — 없으면 버튼을 눌러 볼 수 없게 한다 */
+            document.getElementById('bothBtn').disabled = !kase.report1;
+        }
+
+        /* 붙여넣은 보고서가 끝까지 왔는지 본다.
+           자동 호출 시절엔 프록시의 이어쓰기가 잘림을 막았다. 지금은 사람이 스크롤 중간에서
+           복사하거나 전체 선택에 실패해 같은 결과가 난다 — 그래서 이 검사가 더 중요하다.
+           ⚠ 경고가 떠도 저장은 막지 않는다. 판단은 사용자 몫이다. */
+        function renderCheck(text) {
+            var box = document.getElementById('check');
+            if (!text.trim()) { box.hidden = true; return null; }
+
+            var r = Career.checkReport(text, ROUND);
+            box.hidden = false;
+            box.className = 'check ' + (r.problems.length ? 'warn' : 'ok');
+
+            var head = document.createElement('div');
+            head.className = 'head';
+            head.textContent = r.problems.length
+                ? ('완결성 검사 — 확인할 점 ' + r.problems.length + '건')
+                : '완결성 검사 — 이상 없음';
+
+            var ul = document.createElement('ul');
+            r.problems.forEach(function (m) {
+                var li = document.createElement('li'); li.textContent = m; ul.appendChild(li);
+            });
+            r.passes.forEach(function (m) {
+                var li = document.createElement('li'); li.className = 'pass';
+                li.textContent = m; ul.appendChild(li);
+            });
+
+            box.innerHTML = '';
+            box.appendChild(head);
+            box.appendChild(ul);
+            return r;
+        }
+
+        function pasteInfo() {
+            var n = pasteTa.value.trim().length;
+            document.getElementById('pasteInfo').textContent =
+                n ? (n.toLocaleString() + '자 입력됨') : '아직 입력이 없습니다.';
+            renderCheck(pasteTa.value);
+        }
+        pasteTa.addEventListener('input', pasteInfo);
+
+        document.getElementById('saveBtn').addEventListener('click', function () {
+            try {
+                var chk = Career.checkReport(pasteTa.value, ROUND);
+                var rec = Career.saveReport(kase.id, 2, pasteTa.value);
+                Career.toast(rec.chars.toLocaleString() + '자를 저장했습니다.' +
+                    (chk.problems.length
+                        ? ' ⚠ 완결성 확인 ' + chk.problems.length + '건 — ' + chk.problems[0]
+                        : ''),
+                    chk.problems.length ? '' : 'ok');
+                pasteTa.value = '';
+                pasteInfo();
+                document.getElementById('check').hidden = true;
+                renderSaved();
+                document.getElementById('savedPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } catch (e) {
+                Career.toast(e.message, 'error');
+                pasteTa.focus();
+            }
+        });
+
+        document.getElementById('pasteClearBtn').addEventListener('click', function () {
+            pasteTa.value = ''; pasteInfo(); pasteTa.focus();
+        });
+
+        document.getElementById('mdBtn').addEventListener('click', function () {
+            Career.downloadMd(kase, 2, Career.getCase(kase.id).report2.md);
+        });
+
+        document.getElementById('bothBtn').addEventListener('click', function () {
+            try { Career.downloadCombined(kase); Career.toast('1·2차 합본을 저장했습니다.', 'ok'); }
+            catch (e) { Career.toast(e.message, 'error'); }
+        });
+
+        document.getElementById('resultCopyBtn').addEventListener('click', function () {
+            Career.copyText(Career.getCase(kase.id).report2.md)
+                .then(function () { Career.toast('결과를 복사했습니다.', 'ok'); })
+                .catch(function (e) { Career.toast(e.message, 'error'); });
+        });
+
+        pasteInfo();
+        renderSaved();
     })();
 
     rebuild();

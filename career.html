@@ -78,7 +78,8 @@
     /* 사례가 어디까지 왔는지에 따라 이어서 할 화면으로 보낸다.
        늘 1차 입력으로 보내면 2차까지 끝난 사례에서 되돌아가는 꼴이 된다. */
     function nextPageFor(c) {
-        if (c.report2) { return 'career-report2.html'; }
+        /* 2차 입력·프롬프트·결과가 career-step2.html 한 페이지로 합쳐졌다(2026-09-03) —
+           report2 유무와 무관하게 1차가 있으면 그 페이지로 보낸다. */
         if (c.report1) { return 'career-step2.html'; }
         return 'career-step1.html';
     }

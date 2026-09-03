@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light">
 <meta name="theme-color" content="#eef2ff">
-<title>2차 입력 · 프롬프트 · 결과 — newPrjt02</title>
+<title>2차 추가정보입력 — newPrjt02</title>
 <link rel="stylesheet" as="style" crossorigin
       href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
@@ -18,14 +18,13 @@
 
     <div class="doc-head">
         <span class="logo">🧭</span>
-        <h1>2차 입력 · 프롬프트 · 결과</h1>
+        <h1>2차 추가정보입력</h1>
         <span class="who" id="whoami">—</span>
     </div>
 
-    <div class="steps">
+    <div class="steps" style="grid-template-columns:repeat(2,1fr)">
         <div class="step on"><span class="n">STEP 1</span><span class="t">추가정보 입력 → 프롬프트 생성</span></div>
         <div class="step"><span class="n">STEP 2</span><span class="t">AI 화면에 붙여넣고 실행</span></div>
-        <div class="step on"><span class="n">STEP 3</span><span class="t">이 페이지에 결과 붙여넣기</span></div>
     </div>
 
     <div class="panel">
@@ -38,7 +37,7 @@
         <div class="btn-row">
             <button type="button" class="btn btn-ghost" id="sampleBtn"
                     title="테스트용 예시로 2차 입력 채우기 (1차 결과는 그대로 둡니다)">예시 채우기</button>
-            <button type="button" class="btn btn-ghost" id="clearBtn">2차 입력 지우기</button>
+            <button type="button" class="btn btn-ghost" id="clearBtn">예시 지우기</button>
         </div>
     </div>
 
@@ -81,29 +80,25 @@
         <p class="sub">2차 프롬프트(1차 결과 + 위 입력)를 생성합니다.</p>
         <div class="btn-row">
             <button type="button" class="btn btn-primary grow" id="copyBtn">생성하고 복사하기</button>
-            <button type="button" class="btn btn-ghost" id="previewBtn">원문 보기</button>
             <select id="aiService" class="quick" style="max-width:150px;margin-bottom:0" title="열 AI 서비스 선택"></select>
             <a class="btn btn-ghost" id="aiOpenBtn" href="https://claude.ai/new" target="_blank" rel="noopener noreferrer">AI 화면 열기</a>
         </div>
         <p class="size" id="sizeInfo" style="margin-top:10px">프롬프트를 준비하는 중…</p>
-        <div class="mono-box" id="preview" hidden></div>
     </div>
 
     <div class="panel">
         <h2>2차결과 붙여넣기</h2>
         <p class="sub">
-            AI 가 만든 2차 분석 md 를 <strong>처음부터 끝까지</strong> 복사해 붙여넣으십시오.
+            AI 가 만든 2차 분석 결과를 아래에 붙여넣기하세요.
             STEP 11 최종 브리프와 마지막 면책 문장까지 들어와야 온전한 보고서입니다.
         </p>
         <div class="field">
-            <label for="pasted">2차 분석 결과 (마크다운)</label>
             <textarea id="pasted" rows="10" placeholder="여기에 붙여넣기 (Ctrl+V)"></textarea>
             <p class="note" id="pasteInfo">아직 입력이 없습니다.</p>
             <div class="check" id="check" hidden></div>
         </div>
         <div class="btn-row">
-            <button type="button" class="btn btn-primary grow" id="saveBtn">저장하기</button>
-            <button type="button" class="btn btn-ghost" id="pasteClearBtn">지우기</button>
+            <button type="button" class="btn btn-primary grow" id="saveBtn" disabled>저장하기</button>
         </div>
     </div>
 
@@ -241,8 +236,6 @@
                 '프롬프트 ' + text.length.toLocaleString() + '자 (약 ' +
                 (text.length / 1024).toFixed(1) + 'KB)' +
                 (r1 ? '' : ' · ⚠ 1차 결과 없음');
-            var pv = document.getElementById('preview');
-            if (!pv.hidden) { pv.textContent = text; }
         }).catch(function (e) {
             promptText = '';
             document.getElementById('sizeInfo').textContent = '프롬프트를 만들지 못했습니다 — ' + e.message;
@@ -297,13 +290,6 @@
         Career.toast('2차 입력을 지웠습니다.');
     });
 
-    document.getElementById('previewBtn').addEventListener('click', function () {
-        var pv = document.getElementById('preview');
-        pv.hidden = !pv.hidden;
-        this.textContent = pv.hidden ? '원문 보기' : '원문 숨기기';
-        if (!pv.hidden) { pv.textContent = promptText; }
-    });
-
     document.getElementById('copyBtn').addEventListener('click', function () {
         if (!promptText) { Career.toast('프롬프트가 아직 준비되지 않았습니다.', 'error'); return; }
         Career.copyText(promptText).then(function () {
@@ -311,10 +297,6 @@
                 (r1 ? ' AI 화면에 붙여넣으십시오.' : ' (⚠ 1차 결과 없이 만들어졌습니다)'),
                 r1 ? 'ok' : '');
         }).catch(function (e) {
-            var pv = document.getElementById('preview');
-            pv.hidden = false;
-            pv.textContent = promptText;
-            document.getElementById('previewBtn').textContent = '원문 숨기기';
             Career.toast(e.message, 'error');
         });
     });
@@ -395,6 +377,7 @@
             var n = pasteTa.value.trim().length;
             document.getElementById('pasteInfo').textContent =
                 n ? (n.toLocaleString() + '자 입력됨') : '아직 입력이 없습니다.';
+            document.getElementById('saveBtn').disabled = !n;
             renderCheck(pasteTa.value);
         }
         pasteTa.addEventListener('input', pasteInfo);
@@ -417,10 +400,6 @@
                 Career.toast(e.message, 'error');
                 pasteTa.focus();
             }
-        });
-
-        document.getElementById('pasteClearBtn').addEventListener('click', function () {
-            pasteTa.value = ''; pasteInfo(); pasteTa.focus();
         });
 
         document.getElementById('mdBtn').addEventListener('click', function () {

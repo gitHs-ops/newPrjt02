@@ -1292,3 +1292,63 @@ Session 014 에서 남겨 뒀던 판단 사항 — "로그인 성공 리다이�
 
 - `career-step1.html`/`career-report1.html` 은 아직 두 페이지로 분리돼 있다 —
   1차도 같은 방식으로 합칠지는 사용자 판단 대기(요청받지 않아 손대지 않음)
+
+### Session 018 — 1·2차 화면 문구 정리, 붙여넣기 저장 버튼 빈 값 비활성화
+
+#### 한 일
+
+사용자가 화면별로 정확한 전/후 문구를 지정해 요청 — 문구·버튼명·안내문 교체와
+불필요해진 UI(원문 보기, 붙여넣기용 지우기 버튼, 라벨) 제거.
+
+**`career-step1.html`**
+- 버튼 `clearBtn` "전부 지우기" → "예시 지우기"
+- "프롬프트" 패널 안내문 교체 + `.emph` 클래스로 진하게 표시(새 CSS 규칙,
+  `--text-primary` + `font-weight:700`)
+- 버튼 `copyBtn` "프롬프트 복사" → "프롬프트 생성하고 복사하기"
+- 버튼 `nextBtn` "결과 붙여넣기로 →" → "AI 분석결과 붙여넣기로 →"
+
+**`career-report1.html`**
+- `<title>`/`<h1>` "1차 결과 붙여넣기" → "1차 AI 분석결과 붙여넣기"
+- STEP 3 라벨 "받은 결과를 되돌려 넣기" → "AI 분석결과 붙여넣기"
+- 안내문 축약, `<label for="pasted">` 제거, `clearBtn` 버튼 및 핸들러 제거
+- 버튼 `nextBtn` "2차 추가정보로 →" → "2차 추가정보 입력 →"
+- `saveBtn` 에 `disabled` 초기값 추가, `info()` 에서 붙여넣기 글자수 0이면
+  비활성·있으면 활성으로 토글
+
+**`career-step2.html`**
+- `<title>`/`<h1>` "2차 입력 · 프롬프트 · 결과" → "2차 추가정보입력"
+- STEP 3 항목 제거(`steps` grid 를 3열→2열로), STEP 1 라벨도 "→ 프롬프트 생성"
+  으로 정리(이전 세션에서 이미 반영)
+- `clearBtn` "2차 입력 지우기" → "예시 지우기"
+- "2차 프롬프트" 패널의 `previewBtn`("원문 보기")과 `#preview` 미리보기 박스를
+  완전히 제거(관련 JS — `rebuild()`의 미리보기 갱신, 클릭 핸들러, 복사 실패 시
+  미리보기로 폴백하던 코드 포함) — 복사 실패 시에는 토스트 에러만 남는다
+- "2차결과 붙여넣기" 패널 안내문 교체, `<label for="pasted">` 제거,
+  `pasteClearBtn`("지우기") 버튼 및 핸들러 제거
+- `saveBtn` 에 `disabled` 초기값 추가, `pasteInfo()` 에서 동일하게 토글
+
+**`assets/career.css`** — `.panel .sub .emph` 규칙 신설(`--text-primary` +
+`font-weight:700`, 옅은 기본 회색 안내문 중 강조할 문장용)
+
+#### Verification run
+
+- `.\init.ps1` → **82개 항목 전부 `[OK]`, exit 0** (구조 변경 없이 문구만 바뀐 지점은
+  기존 검사가 그대로 통과, 제거한 요소를 검사하던 곳은 없었다)
+- 실브라우저(캐시 무효화 쿼리로 재확인) — 세 화면 각각 문구·버튼 존재 여부를
+  DOM 에서 직접 확인:
+  - `career-step1.html`: `clearBtn`="예시 지우기", `copyBtn`="프롬프트 생성하고
+    복사하기", `nextBtn`="AI 분석결과 붙여넣기로 →", `.emph` 안내문 색상
+    `rgb(15,23,42)`·굵기 700 확인
+  - `career-report1.html`: h1·STEP3 라벨·안내문 확인, `label[for=pasted]`·
+    `clearBtn` 없음 확인, `saveBtn` 초기 `disabled=true` → 붙여넣기 시 `false`
+    → 지우면 다시 `true` 확인, `nextBtn`="2차 추가정보 입력 →" 확인
+  - `career-step2.html`: h1·STEP 2개로 줄어듦·`clearBtn`="예시 지우기"·
+    `previewBtn`/`pasteClearBtn`/`label[for=pasted]` 모두 없음·안내문 확인,
+    `saveBtn` 초기 `disabled=true` → 실제 붙여넣기+저장 클릭까지 끝까지
+    실행해 `savedPanel` 표시·textarea 초기화·`saveBtn` 재비활성화 확인
+  - 세 화면 모두 콘솔 에러 0
+
+#### 상태
+
+`paste-001`·`paste-002`·`paste-005`·`paste-007` 에 공통 evidence 추가, 상태는
+그대로 `passing`(문구·부가 UI 변경이라 새 항목을 만들지 않음).

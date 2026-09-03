@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light">
 <meta name="theme-color" content="#eef2ff">
-<title>1차 결과 붙여넣기 — newPrjt02</title>
+<title>1차 AI 분석결과 붙여넣기 — newPrjt02</title>
 <link rel="stylesheet" as="style" crossorigin
       href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
@@ -18,31 +18,28 @@
 
     <div class="doc-head">
         <span class="logo">🧭</span>
-        <h1>1차 결과 붙여넣기</h1>
+        <h1>1차 AI 분석결과 붙여넣기</h1>
         <span class="who" id="whoami">—</span>
     </div>
 
     <div class="steps">
         <div class="step"><span class="n">STEP 1</span><span class="t">학생 정보 입력 → 프롬프트 복사</span></div>
         <div class="step"><span class="n">STEP 2</span><span class="t">AI 화면에 붙여넣고 실행</span></div>
-        <div class="step on"><span class="n">STEP 3</span><span class="t">받은 결과를 되돌려 넣기</span></div>
+        <div class="step on"><span class="n">STEP 3</span><span class="t">AI 분석결과 붙여넣기</span></div>
     </div>
 
     <div class="panel">
         <h2 id="caseTitle">사례</h2>
         <p class="sub">
-            AI 가 만든 md 를 <strong>처음부터 끝까지</strong> 복사해 아래에 붙여넣으십시오.
-            마지막 면책 문장까지 들어와야 온전한 보고서입니다.
+            아래에 붙여넣으십시오. 마지막 면책 문장까지 들어와야 온전한 보고서입니다.
         </p>
         <div class="field">
-            <label for="pasted">1차 분석 결과 (마크다운)</label>
             <textarea id="pasted" rows="10" placeholder="여기에 붙여넣기 (Ctrl+V)"></textarea>
             <p class="note" id="pasteInfo">아직 입력이 없습니다.</p>
             <div class="check" id="check" hidden></div>
         </div>
         <div class="btn-row">
-            <button type="button" class="btn btn-primary grow" id="saveBtn">저장하기</button>
-            <button type="button" class="btn btn-ghost" id="clearBtn">지우기</button>
+            <button type="button" class="btn btn-primary grow" id="saveBtn" disabled>저장하기</button>
         </div>
     </div>
 
@@ -57,7 +54,7 @@
     </div>
 
     <div class="btn-row">
-        <a class="btn btn-primary grow" id="nextBtn" href="#" hidden>2차 추가정보로 →</a>
+        <a class="btn btn-primary grow" id="nextBtn" href="#" hidden>2차 추가정보 입력 →</a>
         <a class="btn btn-ghost" id="backBtn" href="#">← 1차 입력으로</a>
         <a class="btn btn-ghost" href="career.html">처음으로</a>
     </div>
@@ -138,6 +135,7 @@
         var n = ta.value.trim().length;
         document.getElementById('pasteInfo').textContent =
             n ? (n.toLocaleString() + '자 입력됨') : '아직 입력이 없습니다.';
+        document.getElementById('saveBtn').disabled = !n;
         renderCheck(ta.value);
     }
     ta.addEventListener('input', info);
@@ -160,10 +158,6 @@
             Career.toast(e.message, 'error');
             ta.focus();
         }
-    });
-
-    document.getElementById('clearBtn').addEventListener('click', function () {
-        ta.value = ''; info(); ta.focus();
     });
 
     document.getElementById('mdBtn').addEventListener('click', function () {

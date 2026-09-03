@@ -75,6 +75,12 @@ body.doc {
     margin-bottom: 16px;
 }
 
+/* 안내문 중 특히 눈에 띄어야 하는 문장 — 옅은 회색(.sub 기본)보다 진하게 */
+.panel .sub .emph {
+    color: var(--text-primary);
+    font-weight: 700;
+}
+
 /* ------------------------------------------------------- 3단계 흐름 안내 */
 
 .steps {

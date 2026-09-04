@@ -56,6 +56,8 @@
         <div class="report" id="report1"></div>
     </div>
 
+    <div id="step2Content" hidden>
+
     <div class="panel">
         <div class="panel-head">
             <h2 id="caseTitle">사례</h2>
@@ -117,6 +119,8 @@
             <select id="aiService" class="quick" style="max-width:150px;margin-bottom:0" title="열 AI 서비스 선택"></select>
         </div>
         <p class="size" id="sizeInfo" style="margin-top:10px">프롬프트를 준비하는 중…</p>
+    </div>
+
     </div>
 
     <div class="panel" id="pastePanel" hidden>
@@ -237,6 +241,11 @@
 
         copyBtn.disabled = !passes;
         copyBtn.title = passes ? '' : '1차 결과의 완결성 검사를 통과해야 활성화됩니다';
+
+        /* 1차를 저장하기 전까지는 2차 관련 내용(사례 정보 입력 ~ 2차 프롬프트)을
+           통째로 숨긴다(2026-09-04, 사용자 요청) — 아직 물고 갈 1차 결과가 없는데
+           2차 입력 화면부터 보이는 게 혼란스럽다. */
+        document.getElementById('step2Content').hidden = !r1;
     }
     updateR1Info();
 

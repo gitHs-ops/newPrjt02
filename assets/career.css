@@ -166,19 +166,43 @@ option { background: #fff; color: var(--text-primary); }
 .case {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     padding: 14px 16px;
     background: var(--field-bg);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     border: 1px solid var(--field-border);
     border-radius: 14px;
-    text-decoration: none;
-    color: inherit;
     animation: cardIn .45s var(--ease) both;
 }
 
 .case:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(15, 23, 42, .08); }
+
+/* 체크박스는 .case(카드) 안에 두되, 이동용 <a>(.case-link) 밖에 둔다 —
+   앵커 안에 체크박스를 두면 클릭이 항상 이동으로 새는 문제가 생긴다. */
+.case-select {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    padding: 4px;
+    cursor: pointer;
+}
+.case-select input[type="checkbox"] {
+    width: 17px;
+    height: 17px;
+    accent-color: var(--accent-primary);
+    cursor: pointer;
+}
+
+.case-link {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    color: inherit;
+}
 
 .case-body { flex: 1; min-width: 0; }
 .case-title { font-size: 14px; font-weight: 700; }
@@ -379,6 +403,71 @@ select.quick:focus { color: var(--text-primary); }
 .check ul { margin: 4px 0 0 18px; }
 .check li { margin: 2px 0; }
 .check .pass { color: var(--text-secondary); }
+
+/* --------------------------------------------------- 사례 목록 툴바/페이징 */
+
+.case-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+
+.case-selectall {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    user-select: none;
+}
+.case-selectall input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--accent-primary);
+    cursor: pointer;
+}
+
+.btn-danger {
+    color: #fff;
+    background: linear-gradient(135deg, #f87171, var(--danger));
+    box-shadow: 0 8px 20px rgba(239, 68, 68, .28);
+}
+.btn-danger:hover  { transform: translateY(-2px); box-shadow: 0 12px 26px rgba(239, 68, 68, .36); }
+.btn-danger:active { transform: translateY(0) scale(.985); }
+.btn-danger:disabled { opacity: .5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.page-btn {
+    flex: 0 0 auto;
+    padding: 8px 16px;
+    font-family: var(--font-main);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    background: var(--field-bg);
+    border: 1px solid var(--field-border);
+    border-radius: 12px;
+    cursor: pointer;
+}
+.page-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(15, 23, 42, .08); }
+.page-btn:disabled { opacity: .45; cursor: not-allowed; }
+
+.page-info {
+    font-family: var(--font-accent);
+    font-size: 13px;
+    color: var(--text-secondary);
+}
 
 @media (prefers-reduced-motion: reduce) {
     .panel, .case, .doc-head { animation: none !important; }

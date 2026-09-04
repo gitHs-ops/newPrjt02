@@ -49,7 +49,7 @@
 
     <div class="panel" id="savedPanel1" hidden>
         <h2>저장된 1차 결과</h2>
-        <p class="sub">위 칸에 새로 붙여넣고 저장해야 아래 내용이 바뀝니다 — 지금 보이는 건 <strong>이미 저장돼 있던</strong> 결과입니다.</p>
+        <p class="sub" id="savedNote1"></p>
         <p class="sub" id="savedMeta1"></p>
         <div class="btn-row" style="margin-top:0;margin-bottom:14px">
             <button type="button" class="btn btn-ghost" id="mdBtn1">md 파일로 저장</button>
@@ -146,7 +146,7 @@
 
     <div class="panel" id="savedPanel" hidden>
         <h2>저장된 2차 결과</h2>
-        <p class="sub">위 칸에 새로 붙여넣고 저장해야 아래 내용이 바뀝니다 — 지금 보이는 건 <strong>이미 저장돼 있던</strong> 결과입니다.</p>
+        <p class="sub" id="savedNote"></p>
         <p class="sub" id="savedMeta"></p>
         <div class="btn-row" style="margin-top:0;margin-bottom:14px">
             <button type="button" class="btn btn-ghost" id="mdBtn">md 파일로 저장</button>
@@ -448,12 +448,22 @@
         var pasteTa = document.getElementById('pasted');
         var ROUND = 2;
 
+        /* 기존 사례를 불러온 것뿐인지, 이번 세션에서 실제로 저장 버튼을 눌러
+           갱신했는지를 구분한다(2026-09-04, 사용자 요청) — "저장하기를 안 눌렀는데
+           결과가 이미 보인다"는 혼동을 없앤다. 페이지를 여는 순간에는 false(=옛
+           데이터를 참조 중), saveBtn 클릭 성공 시 true 로 바뀌고 그 뒤로는 계속
+           "방금 저장한" 상태로 취급한다 — 새로고침하면 다시 false 로 돌아간다. */
+        var freshSave = false;
+
         function renderSaved() {
             kase = Career.getCase(kase.id);
             var rep = kase.report2;
             var panel = document.getElementById('savedPanel');
             if (!rep) { panel.hidden = true; return; }
             panel.hidden = false;
+            document.getElementById('savedNote').textContent = freshSave
+                ? '방금 이 세션에서 저장한 최신 내용입니다.'
+                : '위 칸에 새로 붙여넣고 저장해야 아래 내용이 바뀝니다 — 지금 보이는 건 이미 저장돼 있던 결과입니다.';
             document.getElementById('savedMeta').textContent =
                 new Date(rep.at).toLocaleString('ko-KR') + ' 저장 · ' +
                 rep.chars.toLocaleString() + '자 · 붙여넣기';
@@ -551,6 +561,7 @@
                     chk.problems.length ? '' : 'ok');
                 /* 붙여넣은 내용은 지우지 않는다(2026-09-04, 사용자 요청) — 저장된 결과를
                    보여주는 것과 별개로 방금 붙여넣은 원문도 그대로 남겨 둔다. */
+                freshSave = true;
                 renderSaved();
                 document.getElementById('savedPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
             } catch (e) {
@@ -636,12 +647,19 @@
         var pasteTa1 = document.getElementById('pasted1');
         var ROUND1 = 1;
 
+        /* renderSaved() 쪽과 같은 이유(2026-09-04) — 기존 사례를 연 것뿐인지,
+           이번 세션에서 실제로 저장했는지 구분한다. */
+        var freshSave1 = false;
+
         function renderSaved1() {
             kase = Career.getCase(kase.id);
             var rep = kase.report1;
             var panel = document.getElementById('savedPanel1');
             if (!rep) { panel.hidden = true; return; }
             panel.hidden = false;
+            document.getElementById('savedNote1').textContent = freshSave1
+                ? '방금 이 세션에서 저장한 최신 내용입니다.'
+                : '위 칸에 새로 붙여넣고 저장해야 아래 내용이 바뀝니다 — 지금 보이는 건 이미 저장돼 있던 결과입니다.';
             document.getElementById('savedMeta1').textContent =
                 new Date(rep.at).toLocaleString('ko-KR') + ' 저장 · ' +
                 rep.chars.toLocaleString() + '자 · 붙여넣기';
@@ -731,10 +749,12 @@
                     chk.problems.length ? '' : 'ok');
                 /* 붙여넣은 내용을 지우거나 저장된 1차 결과 패널로 스크롤하지 않는다
                    (2026-09-04, 사용자 요청) — 저장만 하고 화면은 그대로 둔다.
-                   다만 kase 는 새로고침해야 아래 두 줄이 방금 저장한 내용을 본다. */
-                kase = Career.getCase(kase.id);
+                   다만 "저장된 1차 결과" 패널 내용 자체는 갱신해야 방금 저장한 게 보인다. */
+                freshSave1 = true;
+                renderSaved1();
                 /* 1차가 방금 생겼거나 바뀌었으니, 2차 프롬프트도 새 1차 내용으로 다시 만든다 —
-                   새로고침 없이 바로 반영돼야 "1차 저장했는데 2차 프롬프트가 그대로다" 를 피한다. */
+                   새로고침 없이 바로 반영돼야 "1차 저장했는데 2차 프롬프트가 그대로다" 를 피한다.
+                   (renderSaved1() 이 이미 kase 를 새로 읽어 왔다.) */
                 updateR1Info();
                 rebuild();
             } catch (e) {

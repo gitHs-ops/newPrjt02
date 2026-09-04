@@ -293,6 +293,20 @@
         }
     }
 
+    /** [AI 화면 열기] 를 새 탭이 아니라 별도 팝업 창으로 연다 — 프롬프트를
+     *  복사해 둔 화면과 나란히 놓고 붙여넣기 하라는 뜻이다. 같은 창 이름을
+     *  써서 다시 누르면 새 창을 또 띄우지 않고 기존 팝업을 재사용한다. */
+    function openAiPopup(url) {
+        var w = 1000, h = 880;
+        var left = Math.max(0, Math.round((screen.width  - w) / 2));
+        var top  = Math.max(0, Math.round((screen.height - h) / 2));
+        /* noopener 를 주면 창 이름이 무시돼(스펙상 매번 새 창) 재사용이 안 된다 —
+           AI_SERVICES 목록의 고정 주소만 여는 거라 opener 노출 위험이 없어 뺐다. */
+        window.open(url, 'npAiPopup',
+            'width=' + w + ',height=' + h + ',left=' + left + ',top=' + top +
+            ',menubar=no,toolbar=no,location=yes,status=no');
+    }
+
     /* ---------------------------------------------------------- 클립보드 */
 
     /**
@@ -639,6 +653,7 @@
         AI_SERVICES: AI_SERVICES,
         getAiService: getAiService,
         setAiService: setAiService,
+        openAiPopup: openAiPopup,
 
         /* 저장소 */
         listCases: listCases,

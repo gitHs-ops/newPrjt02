@@ -105,8 +105,9 @@
         <p class="sub">2차 프롬프트(1차 결과 + 위 입력)를 생성합니다.</p>
         <div class="btn-row">
             <button type="button" class="btn btn-primary grow" id="copyBtn">생성하고 복사하기</button>
+            <a class="btn btn-ghost disabled" id="aiOpenBtn" href="https://claude.ai/new" rel="noopener noreferrer"
+               aria-disabled="true" title="먼저 [생성하고 복사하기]를 눌러야 활성화됩니다">AI 화면 열기(꼭 복사해오세요)</a>
             <select id="aiService" class="quick" style="max-width:150px;margin-bottom:0" title="열 AI 서비스 선택"></select>
-            <a class="btn btn-ghost" id="aiOpenBtn" href="https://claude.ai/new" target="_blank" rel="noopener noreferrer">AI 화면 열기(꼭 복사해오세요)</a>
         </div>
         <p class="size" id="sizeInfo" style="margin-top:10px">프롬프트를 준비하는 중…</p>
     </div>
@@ -323,6 +324,13 @@
 
     document.getElementById('copyBtn').addEventListener('click', function () {
         if (!promptText) { Career.toast('프롬프트가 아직 준비되지 않았습니다.', 'error'); return; }
+
+        /* 프롬프트를 복사한 뒤에야 [AI 화면 열기]가 의미 있다 — 순서를 강제한다. */
+        var open = document.getElementById('aiOpenBtn');
+        open.classList.remove('disabled');
+        open.removeAttribute('aria-disabled');
+        open.removeAttribute('title');
+
         Career.copyText(promptText).then(function () {
             Career.toast('2차 프롬프트 ' + promptText.length.toLocaleString() + '자를 복사했습니다.' +
                 (r1 ? ' AI 화면에 붙여넣으십시오.' : ' (⚠ 1차 결과 없이 만들어졌습니다)'),
@@ -330,6 +338,13 @@
         }).catch(function (e) {
             Career.toast(e.message, 'error');
         });
+    });
+
+    /* [AI 화면 열기] 는 새 탭이 아니라 별도 팝업 창으로 띄운다 — 프롬프트를
+       복사해 둔 이 화면과 나란히 놓고 붙여넣기 하라는 뜻이다. */
+    document.getElementById('aiOpenBtn').addEventListener('click', function (e) {
+        e.preventDefault();
+        Career.openAiPopup(this.href);
     });
 
     /* AI 화면 선택 — 마지막으로 고른 서비스를 기억한다. 자동 입력은 하지 않는다. */

@@ -518,21 +518,24 @@
       "priority": 25,
       "area": "paste",
       "title": "AI 화면으로 바로 건너가기",
-      "user_visible_behavior": "[프롬프트 복사] 옆에서 Claude·ChatGPT 등 사용할 AI 화면을 새 탭으로 연다. 어디에 붙여넣어야 하는지 헤매지 않는다.",
+      "user_visible_behavior": "[프롬프트 생성하고 복사하기]를 눌러야 [AI 화면 열기]가 활성화된다(순서 강제). 누르면 Claude·ChatGPT 등 고른 AI 화면이 새 탭이 아니라 별도 팝업 창으로 뜬다 — 프롬프트를 복사해 둔 이 화면과 나란히 놓고 붙여넣으라는 뜻이다. 서비스 선택 드롭다운은 [AI 화면 열기] 버튼 뒤에 있다.",
       "status": "passing",
       "verification": [
-        "career-step1.html · career-step2.html 의 프롬프트 패널에 드롭다운(Claude·ChatGPT·Gemini·Perplexity)이 있고, 고른 서비스가 새 탭으로 열린다.",
+        "career-step1.html · career-step2.html 의 프롬프트 패널에 드롭다운(Claude·ChatGPT·Gemini·Perplexity)이 있고, 고른 서비스가 팝업 창으로 열린다.",
+        "[AI 화면 열기] 는 페이지 진입 시 비활성(a.btn.disabled)이고, [프롬프트 생성하고 복사하기]/[생성하고 복사하기]를 눌러야 활성화된다.",
+        "버튼 순서는 복사 버튼(→(1차만) 원문 보기)→[AI 화면 열기]→서비스 선택 드롭다운.",
         "선택은 localStorage(np_ai_service)에 남아 다른 화면·다음 방문에서도 유지된다.",
-        "여는 것은 링크뿐이다 — 프롬프트 자동 입력은 하지 않는다(각 서비스 약관·로그인 문제).",
-        "화면 안 인라인 드롭다운으로 해결한다 — 별도 [연결 설정] 화면을 새로 만들지 않는다(그 문구 자체가 stale-word 검사 대상이다)."
+        "여는 것은 링크뿐이다 — 프롬프트 자동 입력은 하지 않는다(각 서비스 약관·로그인 문제)."
       ],
       "evidence": [
         "2026-09-02 실기동 — career-step1.html 에서 드롭다운 옵션 4종(Claude/ChatGPT/Gemini/Perplexity) 확인, 기본 선택 Claude, 버튼 href=https://claude.ai/new",
         "ChatGPT 로 전환 → 버튼 href 가 https://chatgpt.com/ 로 즉시 바뀌고 localStorage.np_ai_service='chatgpt' 로 저장됨",
         "career-step2.html 로 이동 후 선택이 'chatgpt' 로 그대로 유지됨을 확인 — 화면을 넘나들며 다시 고르지 않아도 된다",
-        "init.ps1 → 'AI 서비스 목록 존재' · '프롬프트 복사 화면에 AI 서비스 선택 드롭다운 존재 (2화면)' [OK]"
+        "init.ps1 → 'AI 서비스 목록 존재' · '프롬프트 복사 화면에 AI 서비스 선택 드롭다운 존재 (2화면)' [OK]",
+        "2026-09-04 배포본 실기동(순서 강제 + 팝업 전환): career-step1.html 진입 시 [AI 화면 열기] pointer-events:none·opacity:.55 확인 → [프롬프트 생성하고 복사하기] 클릭 → pointer-events:auto·opacity:1 로 전환 확인 → 실 클릭(진짜 사용자 제스처, JS 합성 클릭 아님)으로 [AI 화면 열기] 눌러 콘솔 에러 없이 nextBtn 활성화까지 이어지는 것 확인(=Career.openAiPopup() 정상 실행) → career-step2.html 도 동일 패턴(초기 비활성 → [생성하고 복사하기] 클릭 후 활성화) 확인. 두 화면 모두 버튼 순서가 [AI 화면 열기] 다음에 드롭다운으로 바뀐 것 확인",
+        "⚠ 팝업 창이 실제로 화면에 뜨는지는 이 검증 도구(Browser pane)가 window.open 이 만드는 새 창/탭을 추적하지 못해 도구로는 확인 불가 — 코드 실행 자체는 에러 없이 끝까지 갔다(표준 API 이므로 실제 브라우저에서는 뜬다). 사용자가 배포본에서 직접 눌러 확인 필요"
       ],
-      "notes": "기존에 있던 'Claude 열기' 고정 링크를 선택 드롭다운으로 교체했다 — Claude 하나로 고정돼 있던 상태가 이 기능의 미완성 부분이었다. 원래 계획에 있던 '[연결 설정]에서 고를 수 있다'는 옛 프록시 시절 UI 개념이라 실제로는 화면 안 인라인 드롭다운으로 대체했다 — init.ps1 의 stale-word 검사가 '연결 설정' 문구 자체를 금지한다."
+      "notes": "기존에 있던 'Claude 열기' 고정 링크를 선택 드롭다운으로 교체했다 — Claude 하나로 고정돼 있던 상태가 이 기능의 미완성 부분이었다. 원래 계획에 있던 '[연결 설정]에서 고를 수 있다'는 옛 프록시 시절 UI 개념이라 실제로는 화면 안 인라인 드롭다운으로 대체했다 — init.ps1 의 stale-word 검사가 '연결 설정' 문구 자체를 금지한다. 2026-09-04: 링크를 그냥 열면 프롬프트를 복사하지도 않고 AI 화면부터 가는 사용자가 있어 순서를 강제했고(nextBtn 게이팅과 같은 패턴), 새 탭 대신 팝업 창으로 바꿔 이 화면과 나란히 두고 붙여넣기 쉽게 했다(Career.openAiPopup, career.js). noopener 는 일부러 안 썼다 — 주면 스펙상 창 이름별 재사용이 안 되고 매번 새 창이 뜬다; 여는 주소가 AI_SERVICES 의 고정 목록뿐이라 opener 노출 위험이 없다."
     },
     {
       "id": "paste-005",

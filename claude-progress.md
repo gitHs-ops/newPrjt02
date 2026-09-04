@@ -1505,3 +1505,53 @@ Session 014 에서 남겨 뒀던 판단 사항 — "로그인 성공 리다이�
 feature id 없이 기존 텍스트 정정으로 처리(코드 diff 로만 남음).
 커밋 4회: STEP3 1차 정정 → STEP3 2차 정정 → 사례 선택삭제/페이징 추가 →
 hidden 오버라이드 버그 수정. 전부 푸시·배포 확인 완료.
+
+### Session 022 — 프롬프트 복사 → AI 화면 열기 순서 강제, 팝업 창으로 전환 (`paste-004`)
+
+#### 한 일
+
+1. **순서 강제** — `career-step1.html`·`career-step2.html` 의 "AI 화면 열기
+   (꼭 복사해오세요)" 버튼을 페이지 진입 시 비활성으로 시작(`nextBtn` 과 같은
+   `a.btn.disabled` 패턴). [프롬프트 생성하고 복사하기]/[생성하고 복사하기]를
+   눌러야 활성화된다. 프롬프트를 복사하지 않은 채 AI 화면부터 열어버리는 걸
+   막는다.
+2. **버튼 순서 변경** — 두 화면 모두 AI 서비스 선택 드롭다운(`#aiService`)을
+   [AI 화면 열기] 버튼 **뒤**로 옮겼다(기존: 복사 → 드롭다운 → 열기 / 변경:
+   복사 → (1차만: 원문 보기) → 열기 → 드롭다운).
+3. **새 탭 → 팝업 창** — `<a target="_blank">` 를 걷어내고, 클릭을
+   `preventDefault()` 한 뒤 `career.js` 에 새로 추가한 `Career.openAiPopup(url)`
+   (`window.open` + 크기 1000×880·화면 중앙 위치·고정 창 이름 `npAiPopup`)을
+   호출하도록 바꿨다. 프롬프트를 복사해 둔 이 화면과 나란히 놓고 붙여넣으라는
+   의도. `noopener` 는 일부러 뺐다 — 붙이면 스펙상 창 이름이 무시돼 매번 새
+   창이 뜨고 재사용이 안 되는데, 여는 주소가 `AI_SERVICES` 의 고정 목록뿐이라
+   opener 노출 위험이 없어서다.
+
+#### Verification run
+
+- `.\init.ps1` → **82개 항목 전부 `[OK]`, exit 0**
+- 배포본(`https://giths-ops.github.io/newPrjt02/`) 실기동: 계정 재사용
+  (`pagetest01`) → 사례 생성 → `career-step1.html` 진입 시 [AI 화면 열기]
+  `pointer-events:none`·`opacity:.55` 확인 → [프롬프트 생성하고 복사하기]
+  클릭 → 활성화(`pointer-events:auto`·`opacity:1`) 확인 → **실제 사용자
+  제스처로**(JS 합성 클릭이 아니라 `computer` 툴의 진짜 클릭 — 팝업 차단은
+  합성 클릭을 신뢰된 제스처로 안 쳐서 처음엔 헷갈렸다) [AI 화면 열기] 클릭 →
+  콘솔 에러 없이 `nextBtn` 활성화까지 확인(=`Career.openAiPopup()` 이 끝까지
+  실행됨) → `career-step2.html` 도 같은 패턴 확인, 버튼 순서(복사→열기→
+  드롭다운) 둘 다 확인
+- **⚠ 팝업 창이 실제로 뜨는지는 도구 한계로 시각 확인 불가** — 이 세션이 쓰는
+  Browser pane 미리보기가 `window.open` 이 만드는 새 창/탭을 `tabs_context`
+  에 추적해 주지 않는다(네이티브 `confirm()` 다이얼로그도 이 도구가 억제한다는
+  경고가 같이 뜬 것으로 보아, 이 샌드박스가 팝업류 브라우저 UI를 통째로
+  가상화/차단하는 것으로 보인다). 코드는 표준 `window.open` API 라 실제
+  브라우저에서는 뜬다 — 사용자가 배포본에서 직접 눌러 최종 확인 필요.
+- 중간에 발견한 사실: 이 preview 브라우저는 페이지를 다시 열어도(같은 URL)
+  `career.js` 를 캐시된 옛 버전으로 계속 물고 있는 경우가 있었다(`Career.
+  openAiPopup is not a function` 에러로 발견) — 쿼리스트링을 바꿔 강제
+  새로고침하니 해결됨. 배포본 자체는 매번 최신이었다(직접 `fetch(...,
+  {cache:'no-store'})` 로 확인) — 이 preview 도구 쪽 캐싱 문제였다.
+- 테스트 계정의 사례는 검증 후 정리(`Career.deleteCase`).
+
+#### 상태
+
+`paste-004` evidence·user_visible_behavior·notes 갱신(팝업 전환 반영),
+상태는 그대로 `passing`.

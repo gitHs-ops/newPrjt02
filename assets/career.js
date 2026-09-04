@@ -569,22 +569,35 @@
 
     /* ---------------------------------------------------------- md 저장 */
 
+    function pad2(n) { return (n < 10 ? '0' : '') + n; }
+
+    /* new Date().toISOString() 은 UTC(Z)라 파일명의 로컬 시각과 9시간 어긋나
+       보인다(옵시디언 노트 프론트매터에서 실제로 헷갈렸던 사례) — 로컬 시각 +
+       오프셋을 직접 붙여서 파일명과 같은 시각을 가리키게 한다. */
+    function localISOString(d) {
+        var off = -d.getTimezoneOffset();
+        var sign = off >= 0 ? '+' : '-';
+        off = Math.abs(off);
+        return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()) +
+               'T' + pad2(d.getHours()) + ':' + pad2(d.getMinutes()) + ':' + pad2(d.getSeconds()) +
+               sign + pad2(Math.floor(off / 60)) + ':' + pad2(off % 60);
+    }
+
     function fileName(kase, round) {
         var d = new Date();
-        var pad = function (n) { return (n < 10 ? '0' : '') + n; };
         /* 숫자면 "1차", 이미 말이 되는 라벨이면 그대로 — 합본이 "1-2합본차" 가 되지 않게. */
         var part = /^\d+$/.test(String(round)) ? round + '차' : String(round);
         return '진로상담_' + (kase.label || '사례').replace(/[\\/:*?"<>|]/g, '_') +
                '_' + part + '_' +
-               d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) + '_' +
-               pad(d.getHours()) + pad(d.getMinutes()) + '.md';
+               d.getFullYear() + pad2(d.getMonth() + 1) + pad2(d.getDate()) + '_' +
+               pad2(d.getHours()) + pad2(d.getMinutes()) + '.md';
     }
 
     function withFrontMatter(kase, round, md) {
         return ['---',
                 'case: ' + (kase.label || ''),
                 'round: ' + round,
-                'saved: ' + new Date().toISOString(),
+                'saved: ' + localISOString(new Date()),
                 'source: newPrjt02 career (복사·붙여넣기)',
                 '---', '', md, ''].join('\n');
     }

@@ -406,6 +406,10 @@ select.quick:focus { color: var(--text-primary); }
 
 /* --------------------------------------------------- 사례 목록 툴바/페이징 */
 
+/* display:flex 를 지정한 요소는 hidden 속성만으로는 안 숨겨진다
+   (author 규칙이 UA 의 [hidden]{display:none} 보다 우선한다) — 명시적으로 덮어쓴다. */
+.case-toolbar[hidden], .pagination[hidden] { display: none; }
+
 .case-toolbar {
     display: flex;
     align-items: center;

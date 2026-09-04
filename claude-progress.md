@@ -1639,3 +1639,47 @@ hidden 오버라이드 버그 수정. 전부 푸시·배포 확인 완료.
 #### 상태
 
 `paste-007` evidence·notes 갱신, 상태는 그대로 `passing`.
+
+### Session 025 — 붙여넣기 버튼, 저장 후 화면 전환 정리 (`paste-007`)
+
+#### 한 일
+
+사용자가 연달아 보낸 작은 요청 다섯 개를 순서대로 처리했다(중간에 두 번
+인터럽트됨 — 매번 그 시점까지 한 작업을 마저 끝내고 다음 요청으로 넘어갔다).
+
+1. **[붙여넣기] 버튼** — "1차 AI 분석결과 붙여넣기"·"2차결과 붙여넣기" 헤딩
+   옆에 클립보드에서 바로 채우는 버튼 추가. `Career.pasteFromClipboard()`
+   신설(career.js) — `navigator.clipboard.readText()` 를 쓰고, 쓰기와 달리
+   `execCommand` 로 읽기를 대체할 방법이 없어 실패하면 "Ctrl+V 로 직접
+   붙여넣으십시오" 안내로 대체한다. `.panel-head`(career.css) 로 헤딩+버튼
+   가로 배치.
+2. **saveBtn1 라벨** — "저장하기" → "1차 분석 결과 저장하기"(2차 저장
+   버튼과 구분).
+3. **saveBtn1 클릭 후 화면 전환 제거** — 붙여넣은 내용을 지우고
+   `savedPanel1` 로 스크롤하던 동작이 불필요하다는 사용자 요청으로 통째로
+   제거. 대신 `kase = Career.getCase(kase.id)` 로 최신 상태만 다시 읽어
+   `updateR1Info()`/`rebuild()` 가 여전히 즉시 반영되게 유지(이게 없으면
+   방금 만든 2차 게이팅이 저장 직전 상태에 멈춰 있게 된다).
+4. **"2차결과 붙여넣기" 패널을 [생성하고 복사하기] 이후에만 표시** — 프롬프트를
+   복사하기도 전에 붙여넣을 칸부터 보이는 게 어색하다는 사용자 요청.
+   `#pastePanel` 을 기본 `hidden`, 2차 `copyBtn` 클릭 시 `aiOpenBtn` 활성화와
+   같은 시점에 드러나도록.
+5. **saveBtn(2차) 클릭 후 붙여넣기 칸 유지** — 위 3번과 뉘앙스가 다르다 —
+   이번엔 "저장된 결과 표시는 그대로 두고, 붙여넣은 원문만 안 지워지게"
+   요청이었다. `renderSaved()`·`scrollIntoView` 는 남기고 `pasteTa.value = ''`
+   한 줄만 제거.
+
+#### Verification run
+
+- `.\init.ps1` → **82개 항목 전부 `[OK]`, exit 0** (매 단계 재실행)
+- 배포본 실기동(종합): A~L·소제목3·면책문장·4,165자짜리 합성 1차를
+  `pasted1` 에 넣고 저장 → `pasted1.value.length` 그대로 4,165(안 비워짐)
+  확인, `r1info` 즉시 갱신, 2차 `copyBtn` 활성화 확인 → 이 시점에
+  `pastePanel.hidden === true`(아직 복사 전) 확인 → `copyBtn` 실제 클릭 →
+  `pastePanel.hidden === false`·`aiOpenBtn` 활성화 동시 확인 → [붙여넣기]
+  버튼 실제 클릭, 콘솔 에러 0 확인(권한 거부든 성공이든 예외 없이 처리)
+- 테스트 사례는 검증 후 정리.
+
+#### 상태
+
+`paste-007` evidence·notes 갱신(이번 배치 전체), 상태는 그대로 `passing`.

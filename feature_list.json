@@ -675,6 +675,27 @@
         "init.ps1 → 82개 항목 전부 [OK], exit 0 (커밋 2회: 기능 추가 + hidden 오버라이드 수정)"
       ],
       "notes": "Career.deleteCase() 는 career-001(폐기됨) 시절부터 career.js 에 있었지만 UI 에 연결된 적이 없었다 — 이번에 처음 연결했다. .case 를 <a> 에서 <div> 로 바꾸고 체크박스(.case-select)와 이동용 앵커(.case-link)를 분리했다 — 앵커 안에 체크박스를 두면 클릭이 늘 이동으로 새는 문제가 있어서다. 페이지당 건수는 10 으로 고정(PAGE_SIZE, career.html 인라인 스크립트)."
+    },
+    {
+      "id": "auth-009",
+      "priority": 32,
+      "area": "auth",
+      "title": "로그인 시스템 완전 제거",
+      "user_visible_behavior": "index.html 의 [시작하기]가 계정·로그인 없이 바로 career.html 로 간다. 사례는 계정별로 나뉘지 않고 이 브라우저에 저장된 것을 전부 같이 본다.",
+      "status": "passing",
+      "verification": [
+        "login.html · signup.html · error.html · assets/auth.js 가 저장소에 없다(git rm, 이력 보존).",
+        "index.html 에 '로그인이 필요합니다' 안내문이 없다.",
+        "career.html/career-step1.html/career-step2.html 어디에도 auth.js 참조·mountChrome 호출·#whoami 표시가 없다.",
+        "career.js 의 사례 목록·생성이 계정(owner) 과 무관하게 동작한다.",
+        "로그인이 지워졌다고 career 화면(디자인 시스템 assets/auth.css 의존, .btn/.field/.modal 등)이 깨지지 않는다."
+      ],
+      "evidence": [
+        "AskUserQuestion 으로 범위 확정 — 사용자가 '로그인 자체를 앱에서 완전히 제거'를 선택(자동 로그인 유지·안내문만 제거 대신)",
+        "2026-09-04 배포본(https://giths-ops.github.io/newPrjt02/) 실기동: login.html 404 확인 → index.html 에서 '로그인이 필요합니다' 문구 없음, [시작하기] 클릭 → 세션 없이 career.html 바로 진입(콘솔 에러 0) → 사례 생성 → career-step1.html 진입(에러 0) → career-step2.html 이동(에러 0) → 테스트 사례 정리",
+        "init.ps1 → 82개 항목 전부 [OK], exit 0 — login.html/signup.html/error.html/assets/auth.js 폐기 확인(되살아나면 FAIL로 반전), career 화면이 auth.css 를 참조하지만 auth.js 는 참조하지 않음을 확인하는 검사로 교체"
+      ],
+      "notes": "auth.css(디자인 시스템)는 남겼다 — career 화면들이 .btn/.field/.modal 등을 그 파일에서 그대로 가져다 쓴다. career.js 의 currentOwner()/owner 필드도 함께 제거했다(계정이 없으니 소유자 구분 자체가 무의미) — listCases() 가 이제 저장된 사례를 전부 반환한다. auth-001~007 은 evidence 를 보존한 채 retired 로 옮겼다."
     }
   ]
 }

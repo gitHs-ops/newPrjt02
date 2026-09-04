@@ -1555,3 +1555,57 @@ hidden 오버라이드 버그 수정. 전부 푸시·배포 확인 완료.
 
 `paste-004` evidence·user_visible_behavior·notes 갱신(팝업 전환 반영),
 상태는 그대로 `passing`.
+
+### Session 023 — 로그인 시스템 완전 제거, 예시 버튼 우측 정렬 (`auth-009`, `career-011`)
+
+#### 한 일
+
+1. **범위 확정** — "로그인 페이지는 패싱!"이 정확히 무슨 뜻인지 애매해서
+   AskUserQuestion 으로 세 가지 선택지(완전 제거 / 자동 로그인만 추가 / 안내문만
+   제거)를 물었고, 사용자가 **완전 제거**를 골랐다.
+2. **로그인 시스템 삭제** — `login.html`·`signup.html`·`error.html`·
+   `assets/auth.js` 를 `git rm`(이력에 남아 복원 가능). `index.html` 의
+   "로그인이 필요합니다..." 안내문 제거, [시작하기]는 이미 `career.html` 을
+   가리키고 있었으므로 그대로 뒀다(경유하던 로그인 가드만 사라진 것).
+   `assets/auth.css` 는 **안 지웠다** — 로그인 전용이 아니라 `.btn`/`.field`/
+   `.modal` 등 career 화면도 쓰는 공통 디자인 시스템이라서다.
+3. **`career.js` 정리** — `mountChrome()`(로그인 가드 + `#whoami` 표시) 삭제,
+   `currentOwner()`와 사례의 `owner` 필드 삭제 — 계정이 없으니 소유자 구분
+   자체가 무의미해졌다. `listCases()` 는 이제 저장된 사례를 전부 반환한다.
+   `career.html`/`career-step1.html`/`career-step2.html` 세 곳에서
+   `Career.mountChrome()` 호출 + `<span id="whoami">` + `<script
+   src="assets/auth.js">` 를 함께 제거.
+4. **`init.ps1` 대대적 개편** — login/signup/error/auth.js 를 "있어야 할 파일"
+   목록에서 "되살아나면 FAIL"(revival guard, home.html·career-report1/2.html과
+   같은 패턴)로 뒤집었다. `auth.js` 공개 API·PBKDF2 검사(section 5)를 통째로
+   지웠다. career 화면의 공통 자산 참조 검사를 `auth.js` 대신 `auth.css` 기준
+   으로 바꾸고, `auth.js` 를 여전히 참조하면 오히려 FAIL 하도록 뒤집었다.
+   `career.js` 공개 API 목록에서 `mountChrome` 을 빼고 `openAiPopup`(Session
+   022 에서 추가된 것, 이번에 목록에 반영)을 넣었다. 하단 안내 문구·
+   `-OpenBrowser` 대상도 `login.html` → `/`(첫 화면)로 바꿈.
+5. **문서 정리** — `CLAUDE.md`(로그인 제거 절 신설)·`README.md`(로그인 단락·
+   화면 표·데이터 표·한계 절)·`session-handoff.md`(Verified Now·외부 연결·
+   Next Best Step·Commands) 에서 로그인 관련 서술을 걷어냈다.
+6. **부가 요청** — `career-step1.html`/`career-step2.html` 의 "예시 채우기"/
+   "예시 지우기" 버튼을 우측 정렬로 변경(`career.css` 에 `.btn-row.end
+   { justify-content: flex-end; }` 신설, 두 화면의 해당 `.btn-row` 에 `end`
+   클래스 추가).
+
+#### Verification run
+
+- `.\init.ps1` → **82개 항목 전부 `[OK]`, exit 0**
+- 배포본(`https://giths-ops.github.io/newPrjt02/`) 실기동: `login.html` 이
+  404 로 사라진 것 확인 → `index.html` 에 "로그인이 필요합니다" 문구 없음
+  확인 → [시작하기] 클릭 → **세션 없이** `career.html` 바로 진입(콘솔 에러
+  0, `#whoami` 표시 없음) → 사례 생성 → `career-step1.html` 진입(에러 0,
+  "예시 채우기"/"예시 지우기" 행 `justify-content:flex-end` 확인) →
+  `career-step2.html` 이동(에러 0, 같은 행 우측 정렬 확인) → 테스트 사례
+  정리(`Career.deleteCase` 루프)
+- feature_list.json: `auth-001`~`007` 을 evidence 보존한 채 `retired` 로
+  전환, 새 결정 자체를 기록하는 `auth-009`(`passing`) 신설.
+
+#### 상태
+
+`auth-001`~`007` → `retired`(evidence 보존). `auth-009` 신설·`passing`.
+`career-011`(사례 목록) 은 영향 없음 — 계정 없이도 사례 저장·선택삭제·
+페이징은 그대로 동작(owner 필터가 빠졌을 뿐 저장 자체는 무관했다).

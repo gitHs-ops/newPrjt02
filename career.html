@@ -145,10 +145,15 @@
 
     function render() {
         var box = document.getElementById('caseList');
-        var all = Career.listCases();
+        /* 목록에는 2차 결과까지 저장된 사례만 보인다 — 이름만 만들고 중단한 시험/미완 입력이
+           계속 쌓여 목록을 어지럽히는 것을 막기 위함. 미완 사례 자체는 지워지지 않고
+           localStorage 에 남으며, step1→step2 이동은 URL 의 ?case=id 로 이어지므로
+           이 화면 필터와 무관하게 정상 동작한다. 이름 중복 체크(isDuplicateLabel)는
+           미완 사례까지 봐야 하므로 이 필터를 타지 않은 Career.listCases() 를 그대로 쓴다. */
+        var all = Career.listCases().filter(function (c) { return !!c.report2; });
 
         if (!all.length) {
-            box.innerHTML = '<div class="empty">아직 사례가 없습니다.<br>위에서 새 사례를 만들어 시작하십시오.</div>';
+            box.innerHTML = '<div class="empty">아직 완료된 사례가 없습니다.<br>2차 결과까지 저장하면 여기에 나타납니다.</div>';
             toolbarEl.hidden = true;
             pagerEl.hidden = true;
             pageIds = [];

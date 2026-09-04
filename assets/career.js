@@ -414,11 +414,19 @@
         writeAll(readAll().filter(function (c) { return c.id !== id; }));
     }
 
-    /** 붙여넣은 보고서를 사례에 넣는다. 자동 호출이 아니라 사람 손에서 왔다는 사실을 남긴다. */
-    function saveReport(id, round, md) {
+    /** 붙여넣은 보고서를 사례에 넣는다. 자동 호출이 아니라 사람 손에서 왔다는 사실을 남긴다.
+     *  ignoredProblems: 저장 시점에 사용자가 "무시" 체크한 완결성 문제 문구 목록(선택).
+     *  이 저장 이후 어디선가 같은 보고서를 다시 완결성 검사할 때, 그 재검사가 이 목록을
+     *  모르면 사용자가 이미 무시하기로 한 문제 때문에 화면이 영원히 막힐 수 있다 —
+     *  그래서 검사 결과가 아니라 원문과 함께 기록해 둔다(2026-09-04 실제 그렇게 막힌
+     *  사례 발견: career-step2.html 의 2차 프롬프트 버튼). */
+    function saveReport(id, round, md, ignoredProblems) {
         var text = (md || '').trim();
         if (!text) { throw new Error('붙여넣은 내용이 비어 있습니다.'); }
-        var rec = { md: text, at: new Date().toISOString(), source: 'paste', chars: text.length };
+        var rec = {
+            md: text, at: new Date().toISOString(), source: 'paste', chars: text.length,
+            ignoredProblems: ignoredProblems || []
+        };
         var patch = {};
         patch[round === 2 ? 'report2' : 'report1'] = rec;
         updateCase(id, patch);

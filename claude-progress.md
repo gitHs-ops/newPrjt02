@@ -1932,3 +1932,53 @@ AI 응답이 실제로는 괜찮은데 완결성 검사 표현(정확한 소제�
 #### 상태
 
 `career-011` evidence·user_visible_behavior 갱신, 상태는 그대로 `passing`.
+
+### Session 032 — "무시"하고 저장했는데 2차 프롬프트 버튼이 영원히 안 눌리는 버그 (`paste-007`)
+
+#### 한 일
+
+사용자가 실제 화면 스크린샷으로 보고: "2차 프롬프트" 패널에 프롬프트가
+이미 10,517자로 만들어져 있는데 [생성하고 복사하기]가 비활성이다.
+
+원인 추적: `career-step2.html` 의 `updateR1Info()` 가 `copyBtn` 을
+켤지 결정할 때 `kase.report1.md` 를 `Career.checkReport()` 로 **처음부터
+다시** 검사한다. 그런데 Session 029(2026-09-04)에서 넣은 "무시" 체크
+기능은 `initPaste1()` IIFE 안의 지역 변수 `ignoredProblems1` 에만
+기억된다 — `updateR1Info()` 는 그 스코프 밖이라 존재 자체를 모른다.
+그 결과: 문제를 무시하고 저장에는 성공해도(`saveBtn1` 게이트는
+무시를 반영하므로 통과), `copyBtn` 재검사는 같은 문제를 다시 찾아내
+영원히 막는다. 어떤 조작으로도 풀 방법이 없는 진짜 데드엔드였다.
+
+- `assets/career.js`: `saveReport(id, round, md)` 에 4번째 인자
+  `ignoredProblems` 추가, 저장 레코드에 `rec.ignoredProblems` 로
+  함께 영구 저장(검사 결과가 아니라 원문과 같이 저장해야 다음에
+  다시 검사해도 같은 결정을 재현할 수 있다).
+- `career-step2.html`: `saveBtn1`/`saveBtn` 클릭 핸들러가 각각
+  `Object.keys(ignoredProblems1)` / `Object.keys(ignoredProblems)` 를
+  넘기도록 수정(2차 쪽은 지금 재검사하는 downstream 게이트가 없지만,
+  잠재적으로 같은 함정이라 대칭으로 맞춰 뒀다).
+- `updateR1Info()`: `chk.problems` 에서 `r1.ignoredProblems` 에 있는
+  것만 뺀 `unignored1` 로 `passes` 를 판단하도록 변경. r1info 문구도
+  "문제 N건 무시하고 저장됨" 으로 구분해서 보여준다.
+- 버튼이 왜 안 눌리는지 버튼 바로 밑에도 보여주는 `copyBtnReason`
+  줄을 새로 추가했다 — 같은 사유가 위쪽 `r1info` 에도 있지만, 카드를
+  스크롤해 버튼만 보면 "다 준비된 것 같은데 왜 안 눌리지" 로 헷갈리기
+  쉽다(이번 사용자 혼란이 정확히 이 패턴).
+
+#### Verification run
+
+- 로컬(`http://localhost:8941`) 실기동: 완결성 문제 3건짜리 1차 텍스트
+  (4,499자)를 붙여넣고 "무시" 3개 모두 체크 → 저장 → `report1.ignoredProblems`
+  에 문제 3건이 그대로 기록됨 확인 → `copyBtn.disabled===false`·
+  `copyBtnReason.hidden===true`·r1info "문제 3건 무시하고 저장됨" 확인 →
+  실제 클릭으로 `aiOpenBtn` 활성화까지 연쇄 확인(콘솔 에러 0).
+- 대조군: 무시하지 않은 새 문제가 남아 있으면 `copyBtn` 이 여전히
+  비활성 상태로 남고 사유가 표시됨을 확인 — 진짜 미완결 보고서는
+  계속 막는다(회귀 없음).
+- `.\init.ps1` → **82개 항목 전부 `[OK]`, exit 0**.
+
+#### 상태
+
+`paste-007` evidence·notes 갱신, 상태는 그대로 `passing`. 앞으로 완결성
+재검사를 또 추가할 일이 있으면 반드시 `ignoredProblems` 를 먼저 뺄 것 —
+`Career.checkReport()` 자체는 무시 개념을 모르는 순수 검사 함수다.

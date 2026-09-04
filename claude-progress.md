@@ -2052,3 +2052,38 @@ AI 응답이 실제로는 괜찮은데 완결성 검사 표현(정확한 소제�
 공개 API, 폐기 코드 가드는 건드리지 않았으므로 회귀 가능성은 낮지만,
 이 세션은 구조 검사기를 한 번도 못 돌려 봤으므로 사람이 한 번은
 확인해야 닫힌다.
+
+#### 후속 — 같은 세션에서 `init.ps1` 직접 실행 성공
+
+사용자가 위 항목을 바로 요청해서, "Windows 가 없으니 못 돌린다"로
+끝내지 않고 이 리모트 Linux 컨테이너에 PowerShell 자체를 설치해
+해결했다.
+
+- `packages.microsoft.com/config/ubuntu/24.04/packages-microsoft-prod.deb`
+  가 프록시로 접근 가능함을 먼저 `curl` 로 확인(200) → apt 저장소 등록 →
+  `apt-get install powershell` → **PowerShell 7.6.5(pwsh) 설치 성공**.
+  (참고로 `github.com` 릴리스 직접 다운로드는 프록시가 403 으로 막았다 —
+  Microsoft 공식 apt 저장소 경로만 뚫려 있었다.)
+- `pwsh -NoProfile -File ./init.ps1` 실제 실행 → **63개 항목 전부
+  `[OK]` · `[FAIL]` 0건 · `exit 0` · "검증 통과"**. 로그를 `grep -c`로
+  다시 세어 63/0 을 재확인했고, 별도로 `$LASTEXITCODE` 도 0 인 것을
+  확인했다(둘 다 화면 출력만 보고 넘어가지 않고 실측).
+- `init.ps1` 에 `$IsWindows`/`$IsLinux` 같은 OS 분기가 있는지 `grep` 으로
+  확인 — **없다.** 즉 Linux 위 pwsh 라서 조용히 건너뛴 검사는 없다(전
+  검사가 동일하게 실행됨).
+- ⚠ 그래도 완전히 같은 보증은 아니다 — 이건 **Windows PowerShell 5.1이
+  아니라 Linux 위 PowerShell 7.6**이다. `AGENTS.md`/`CLAUDE.md` 가 적어
+  둔 과거 지뢰(PS 5.1 이 cp949 로 읽어 한글이 깨지는 인코딩 사고)는 5.1
+  고유 증상이라 이 실행으로는 재현/반증되지 않는다. 다만 그 지뢰를 막는
+  `init.ps1` 자신의 BOM 자가검사("init.ps1 이 UTF-8 BOM 으로 저장돼
+  있음")는 이번에도 통과했다.
+- 개수 차이(과거 세션들의 "82개" vs 이번 "63개")도 짚어 둔다:
+  `init.ps1` 안에 개수를 못박아 비교하는 코드는 없다(단순 카운트) —
+  `career-report1.html`/`career-report2.html`/`login.html` 류가
+  이전 세션들에서 이미 폐기되며 그 파일들 각각에 대한 개별 구조 검사
+  (형태 정상·CSS/JS 참조 등)가 자연히 사라진 것으로 보인다. 회귀가
+  아니라 스크립트가 세션을 거치며 따라간 카운트 변화다.
+
+이걸로 Session 033 이 남겼던 "다음 세션 필수" 항목은 다음 세션까지
+기다리지 않고 이번 세션 안에서 닫혔다. `feature_list.json` 의
+`paste-002` evidence 에 같은 내용을 기록했다.

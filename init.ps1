@@ -67,7 +67,6 @@ foreach ($f in $appFiles) {
 $careerFiles = @(
     'career.html',
     'career-step1.html',
-    'career-report1.html',
     'career-step2.html',
     'assets\career.js',
     'assets\career.css',
@@ -109,6 +108,15 @@ if (Test-Path -LiteralPath 'career-report2.html' -PathType Leaf) {
     Write-Ok "career-report2.html 폐기 확인 (2차 결과 붙여넣기는 career-step2.html 에 통합)"
 }
 
+# 2d-3) career-report1.html 폐기 확인 — 2026-09-04 그 내용도 career-step2.html 로
+#     합쳤다(1차 결과 붙여넣기가 2차보다 앞쪽에 있다). 되살아나면 그 결정이
+#     조용히 무효화된 것이다.
+if (Test-Path -LiteralPath 'career-report1.html' -PathType Leaf) {
+    Write-Fail "career-report1.html 이 되살아났다 — 1차 결과 붙여넣기는 career-step2.html 로 합쳐졌다"
+} else {
+    Write-Ok "career-report1.html 폐기 확인 (1차 결과 붙여넣기는 career-step2.html 에 통합)"
+}
+
 # 2e) login.html 이 실제로 career.html 로 보내는가 — 폐기한 home.html 참조가 남아 있으면
 #     "파일은 지웠는데 코드는 여전히 그리로 가려는" 깨진 상태가 된다.
 if (Test-Path -LiteralPath 'login.html' -PathType Leaf) {
@@ -124,8 +132,7 @@ if (Test-Path -LiteralPath 'login.html' -PathType Leaf) {
 
 # 3) HTML 무결성 — 비어 있지 않고 <html> 을 포함하는가
 foreach ($f in @('index.html', 'login.html', 'signup.html', 'error.html',
-                 'career.html', 'career-step1.html', 'career-report1.html',
-                 'career-step2.html')) {
+                 'career.html', 'career-step1.html', 'career-step2.html')) {
     if (-not (Test-Path -LiteralPath $f -PathType Leaf)) { continue }
     $content = Get-Content -LiteralPath $f -Raw -Encoding UTF8
     if ($content.Length -gt 0 -and $content -match '(?i)<html') {
@@ -172,8 +179,7 @@ if (Test-Path -LiteralPath 'assets\auth.js' -PathType Leaf) {
 }
 
 # 5b) 진로상담 화면이 공통 자산을 참조하는가
-foreach ($f in @('career.html', 'career-step1.html', 'career-report1.html',
-                 'career-step2.html')) {
+foreach ($f in @('career.html', 'career-step1.html', 'career-step2.html')) {
     if (-not (Test-Path -LiteralPath $f -PathType Leaf)) { continue }
     $c = Get-Content -LiteralPath $f -Raw -Encoding UTF8
     if (($c -match 'assets/career\.css') -and ($c -match 'assets/career\.js') -and ($c -match 'assets/auth\.js')) {
@@ -322,16 +328,18 @@ if (Test-Path -LiteralPath 'assets\career.js' -PathType Leaf) {
     }
 
     # 붙여넣기 화면이 실제로 검사를 부르는가. career.js 에만 있고 화면이 안 부르면 무용지물이다.
-    #   2차는 career-step2.html 에 병합됐다(2026-09-03) — career-report2.html 은 없다.
-    $noCheck = @()
-    foreach ($f in @('career-report1.html', 'career-step2.html')) {
-        if ((Test-Path -LiteralPath $f -PathType Leaf) -and
-            ((Get-Content -LiteralPath $f -Raw -Encoding UTF8) -notmatch 'checkReport')) { $noCheck += $f }
+    #   1차·2차 붙여넣기가 둘 다 career-step2.html 에 있다(2026-09-03/04 병합) —
+    #   checkReport 호출이 최소 두 번(1차용·2차용) 있어야 한다.
+    $cs2 = 'career-step2.html'
+    $callCount = 0
+    if (Test-Path -LiteralPath $cs2 -PathType Leaf) {
+        $body = Get-Content -LiteralPath $cs2 -Raw -Encoding UTF8
+        $callCount = ([regex]::Matches($body, 'checkReport')).Count
     }
-    if ($noCheck.Count -eq 0) {
-        Write-Ok "붙여넣기 화면이 완결성 검사를 호출 (2화면)"
+    if ($callCount -ge 2) {
+        Write-Ok "붙여넣기 화면(1·2차 통합)이 완결성 검사를 호출 ($callCount 회)"
     } else {
-        Write-Fail "완결성 검사를 부르지 않는 화면: $($noCheck -join ', ')"
+        Write-Fail "$cs2 에서 완결성 검사(checkReport) 호출이 부족함(1차·2차 각각 필요, 발견 $callCount 회)"
     }
 
     # 붙여넣은 md 는 AI 출력이며 신뢰 대상이 아니다. 렌더 전에 이스케이프해야 한다.
@@ -410,8 +418,7 @@ if ($pMissing.Count -eq 0 -and $pTotal -gt 30000) {
 #   ⚠ 주석과 <script> 안은 뺀다 — 경위를 설명하는 주석까지 잡으면 기록을 지우게 된다.
 $staleWords = @('AI 연결됨', 'AI 미설정', '모의 모드', '토큰 사용량', '연결 설정', '분석 실행')
 $stalePages = @()
-foreach ($f in @('index.html', 'career.html', 'career-step1.html',
-                 'career-report1.html', 'career-step2.html')) {
+foreach ($f in @('index.html', 'career.html', 'career-step1.html', 'career-step2.html')) {
     if (-not (Test-Path -LiteralPath $f -PathType Leaf)) { continue }
     $body = Get-Content -LiteralPath $f -Raw -Encoding UTF8
     $body = [regex]::Replace($body, '(?s)<script.*?</script>', '')

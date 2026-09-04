@@ -1352,3 +1352,61 @@ Session 014 에서 남겨 뒀던 판단 사항 — "로그인 성공 리다이�
 
 `paste-001`·`paste-002`·`paste-005`·`paste-007` 에 공통 evidence 추가, 상태는
 그대로 `passing`(문구·부가 UI 변경이라 새 항목을 만들지 않음).
+
+### Session 019 — 1차 결과 붙여넣기를 career-step2.html 로 병합 (2차와 같은 방식)
+
+#### 배경
+
+사용자 요청: (1) `career-step1.html` STEP3 라벨 "받은 결과를 되돌려 넣기" → "AI
+결과 붙여넣기", (2) 1·2차 공통 "AI 화면 열기" → "AI 화면 열기(꼭 복사해오세요)",
+(3) "1차 페이지 분석 결과 저장 버튼 제거하고 최종 페이지에서 1차 결과내용 제시하는
+박스와 저장 버튼을 2차 결과 앞에 삽입" — Session 017 에서 2차를 career-step2.html
+에 합친 것과 같은 방식으로 1차도 합쳐 달라는 것.
+
+#### 한 일
+
+1. **`career-step1.html`** — STEP3 라벨 변경, "AI 화면 열기" 문구 변경,
+   `nextBtn` href 를 `career-report1.html` → `career-step2.html` 로 변경(1차 결과
+   붙여넣는 곳이 옮겨졌으므로)
+2. **`career-step2.html`**
+   - "AI 화면 열기" 문구 변경(2차 프롬프트 패널)
+   - `career-report1.html` 의 붙여넣기 패널(텍스트박스·완결성검사·저장하기)과
+     저장 결과 패널(렌더·md저장·결과복사)을 그대로 옮겨와 **"사례" 패널보다도
+     앞쪽**(페이지 맨 위, "2차 결과 앞")에 삽입. id 충돌 회피: 1차 쪽 전부
+     `1` 접미사(`pasted1`/`pasteInfo1`/`check1`/`saveBtn1`/`savedPanel1`/
+     `savedMeta1`/`report1`/`mdBtn1`/`copyBtn1`)
+   - 1차 저장 시 `updateR1Info()`(새로 뽑은 함수, `r1` 재계산 + 안내문 갱신) +
+     `rebuild()`(2차 프롬프트 재조립)를 이어서 호출 — 새로고침 없이 2차 프롬프트가
+     방금 저장한 1차 내용을 즉시 반영한다
+   - `backBtn` href/문구를 `career-report1.html`("← 1차 결과") → `career-step1.html`
+     ("← 1차 입력으로") 로 변경
+3. **`career-report1.html` 삭제**(`git rm`, 이력에 남아 복원 가능)
+4. **`init.ps1`** — `career-report1.html` 을 모든 파일 목록에서 제거, 반대 방향
+   가드 신설("되살아나면 FAIL", 이번까지 세 번째 같은 패턴: home.html·
+   career_proxy.example.gs·career-report2.html 에 이어). 완결성 검사 호출 확인을
+   "career-step2.html 안에서 checkReport 가 몇 번 불리는가"(1차·2차 각 최소 1회씩,
+   최소 2회) 방식으로 바꿨다 — 이제 화면이 하나뿐이라 "2화면" 카운트 방식이 안 맞았다
+5. **`feature_list.json`** — `paste-001`·`paste-002`·`paste-005`·`paste-007` 에
+   공통 evidence 추가(기존 evidence 보존)
+
+#### Verification run
+
+- `.\init.ps1` → **82개 항목 전부 `[OK]`, exit 0**
+  (`[OK] career-report1.html 폐기 확인`, `[OK] 붙여넣기 화면(1·2차 통합)이 완결성
+  검사를 호출 (4 회)` 포함)
+- 실브라우저(캐시 무효화 쿼리로 재확인): 새 사례 생성 → `career-step1.html` 에서
+  STEP3·AI화면열기 문구·`nextBtn` href 확인(전부 `career-step2.html` 로) →
+  **1차 결과가 아직 없는 상태로** `career-step2.html` 진입(직접, report1 없이) →
+  `r1info` 경고문·`saveBtn1` 초기 비활성·2차 `sizeInfo` 에 "⚠ 1차 결과 없음" 확인 →
+  1차 md 66자 붙여넣기 저장 → `r1info` 갱신·`savedPanel1` 표시·**2차 `sizeInfo` 가
+  새로고침 없이 즉시 갱신되어 경고가 사라짐** 확인 → 새로고침 후 두 저장 패널
+  (`savedPanel1`·`savedPanel`) 모두 유지 확인 → 2차 붙여넣기·저장도 정상(회귀 없음,
+  `bothBtn` 활성화) → `career.html` 사례 목록이 `career-step2.html` 로 라우팅됨
+  확인. 콘솔 에러 0
+
+#### 상태
+
+`paste-001`·`paste-002`·`paste-005`·`paste-007` evidence 갱신, 상태는 그대로
+`passing`. 이제 `career-step1.html` → `career-step2.html` 두 화면만으로 전체
+흐름(1차 입력·프롬프트, 1차 결과 붙여넣기, 2차 입력·프롬프트, 2차 결과 붙여넣기)이
+끝난다 — `career-report1.html`·`career-report2.html` 둘 다 폐기됐다.

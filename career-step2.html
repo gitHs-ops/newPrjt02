@@ -28,6 +28,31 @@
     </div>
 
     <div class="panel">
+        <h2>1차 AI 분석결과 붙여넣기</h2>
+        <p class="sub">
+            아래에 붙여넣으십시오. 마지막 면책 문장까지 들어와야 온전한 보고서입니다.
+        </p>
+        <div class="field">
+            <textarea id="pasted1" rows="10" placeholder="여기에 붙여넣기 (Ctrl+V)"></textarea>
+            <p class="note" id="pasteInfo1">아직 입력이 없습니다.</p>
+            <div class="check" id="check1" hidden></div>
+        </div>
+        <div class="btn-row">
+            <button type="button" class="btn btn-primary grow" id="saveBtn1" disabled>저장하기</button>
+        </div>
+    </div>
+
+    <div class="panel" id="savedPanel1" hidden>
+        <h2>저장된 1차 결과</h2>
+        <p class="sub" id="savedMeta1"></p>
+        <div class="btn-row" style="margin-top:0;margin-bottom:14px">
+            <button type="button" class="btn btn-ghost" id="mdBtn1">md 파일로 저장</button>
+            <button type="button" class="btn btn-ghost" id="copyBtn1">결과 복사</button>
+        </div>
+        <div class="report" id="report1"></div>
+    </div>
+
+    <div class="panel">
         <h2 id="caseTitle">사례</h2>
         <p class="sub">
             2차는 <strong>1차 결과를 그대로 물고 갑니다.</strong> 아래 세 묶음은 모두 선택 사항이며,
@@ -81,7 +106,7 @@
         <div class="btn-row">
             <button type="button" class="btn btn-primary grow" id="copyBtn">생성하고 복사하기</button>
             <select id="aiService" class="quick" style="max-width:150px;margin-bottom:0" title="열 AI 서비스 선택"></select>
-            <a class="btn btn-ghost" id="aiOpenBtn" href="https://claude.ai/new" target="_blank" rel="noopener noreferrer">AI 화면 열기</a>
+            <a class="btn btn-ghost" id="aiOpenBtn" href="https://claude.ai/new" target="_blank" rel="noopener noreferrer">AI 화면 열기(꼭 복사해오세요)</a>
         </div>
         <p class="size" id="sizeInfo" style="margin-top:10px">프롬프트를 준비하는 중…</p>
     </div>
@@ -114,7 +139,7 @@
     </div>
 
     <div class="btn-row">
-        <a class="btn btn-ghost" id="backBtn" href="#">← 1차 결과</a>
+        <a class="btn btn-ghost" id="backBtn" href="#">← 1차 입력으로</a>
         <a class="btn btn-ghost" href="career.html">처음으로</a>
     </div>
 
@@ -137,13 +162,19 @@
         return;
     }
     document.getElementById('caseTitle').textContent = kase.label;
-    document.getElementById('backBtn').href = 'career-report1.html?case=' + encodeURIComponent(kase.id);
+    document.getElementById('backBtn').href = 'career-step1.html?case=' + encodeURIComponent(kase.id);
 
-    /* 1차 결과가 없으면 2차 프롬프트의 핵심 입력이 비어 버린다 — 먼저 알린다. */
+    /* 1차 결과가 없으면 2차 프롬프트의 핵심 입력이 비어 버린다 — 먼저 알린다.
+       이 페이지에서 바로 1차를 붙여넣어 저장할 수 있으므로(아래 initPaste1),
+       그때 r1 과 이 안내문을 다시 계산해야 한다 — 그래서 함수로 뽑아 둔다. */
     var r1 = kase.report1;
-    document.getElementById('r1info').textContent = r1
-        ? ('1차 결과 ' + r1.chars.toLocaleString() + '자 (' + new Date(r1.at).toLocaleString('ko-KR') + ' 저장)')
-        : '⚠ 1차 결과가 없습니다. 먼저 1차를 저장해야 2차 분석이 의미를 갖습니다.';
+    function updateR1Info() {
+        r1 = kase.report1;
+        document.getElementById('r1info').textContent = r1
+            ? ('1차 결과 ' + r1.chars.toLocaleString() + '자 (' + new Date(r1.at).toLocaleString('ko-KR') + ' 저장)')
+            : '⚠ 1차 결과가 없습니다. 위에서 먼저 1차 결과를 붙여넣어 저장하세요.';
+    }
+    updateR1Info();
 
     /* ------------------------------------------------------------ 폼 생성 */
 
@@ -419,6 +450,101 @@
 
         pasteInfo();
         renderSaved();
+    })();
+
+    /* ------------------------------------------------- 1차 결과 붙여넣기 (career-report1.html 병합, 2026-09-04)
+       페이지 맨 위 — 2차 프롬프트가 1차 결과를 그대로 물고 가므로, 붙여넣는 순서상으로도
+       2차보다 앞에 둔다. 로직은 initPaste(2차)와 같은 모양이나 ROUND=1, 대상은 report1. */
+    (function initPaste1() {
+        var pasteTa1 = document.getElementById('pasted1');
+        var ROUND1 = 1;
+
+        function renderSaved1() {
+            kase = Career.getCase(kase.id);
+            var rep = kase.report1;
+            var panel = document.getElementById('savedPanel1');
+            if (!rep) { panel.hidden = true; return; }
+            panel.hidden = false;
+            document.getElementById('savedMeta1').textContent =
+                new Date(rep.at).toLocaleString('ko-KR') + ' 저장 · ' +
+                rep.chars.toLocaleString() + '자 · 붙여넣기';
+            document.getElementById('report1').innerHTML = Career.mdToHtml(rep.md);
+        }
+
+        function renderCheck1(text) {
+            var box = document.getElementById('check1');
+            if (!text.trim()) { box.hidden = true; return null; }
+
+            var r = Career.checkReport(text, ROUND1);
+            box.hidden = false;
+            box.className = 'check ' + (r.problems.length ? 'warn' : 'ok');
+
+            var head = document.createElement('div');
+            head.className = 'head';
+            head.textContent = r.problems.length
+                ? ('완결성 검사 — 확인할 점 ' + r.problems.length + '건')
+                : '완결성 검사 — 이상 없음';
+
+            var ul = document.createElement('ul');
+            r.problems.forEach(function (m) {
+                var li = document.createElement('li'); li.textContent = m; ul.appendChild(li);
+            });
+            r.passes.forEach(function (m) {
+                var li = document.createElement('li'); li.className = 'pass';
+                li.textContent = m; ul.appendChild(li);
+            });
+
+            box.innerHTML = '';
+            box.appendChild(head);
+            box.appendChild(ul);
+            return r;
+        }
+
+        function pasteInfo1() {
+            var n = pasteTa1.value.trim().length;
+            document.getElementById('pasteInfo1').textContent =
+                n ? (n.toLocaleString() + '자 입력됨') : '아직 입력이 없습니다.';
+            document.getElementById('saveBtn1').disabled = !n;
+            renderCheck1(pasteTa1.value);
+        }
+        pasteTa1.addEventListener('input', pasteInfo1);
+
+        document.getElementById('saveBtn1').addEventListener('click', function () {
+            try {
+                var chk = Career.checkReport(pasteTa1.value, ROUND1);
+                var rec = Career.saveReport(kase.id, 1, pasteTa1.value);
+                Career.toast(rec.chars.toLocaleString() + '자를 저장했습니다.' +
+                    (chk.problems.length
+                        ? ' ⚠ 완결성 확인 ' + chk.problems.length + '건 — ' + chk.problems[0]
+                        : ''),
+                    chk.problems.length ? '' : 'ok');
+                pasteTa1.value = '';
+                pasteInfo1();
+                document.getElementById('check1').hidden = true;
+                renderSaved1();
+                /* 1차가 방금 생겼거나 바뀌었으니, 2차 프롬프트도 새 1차 내용으로 다시 만든다 —
+                   새로고침 없이 바로 반영돼야 "1차 저장했는데 2차 프롬프트가 그대로다" 를 피한다. */
+                updateR1Info();
+                rebuild();
+                document.getElementById('savedPanel1').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } catch (e) {
+                Career.toast(e.message, 'error');
+                pasteTa1.focus();
+            }
+        });
+
+        document.getElementById('mdBtn1').addEventListener('click', function () {
+            Career.downloadMd(kase, 1, Career.getCase(kase.id).report1.md);
+        });
+
+        document.getElementById('copyBtn1').addEventListener('click', function () {
+            Career.copyText(Career.getCase(kase.id).report1.md)
+                .then(function () { Career.toast('결과를 복사했습니다.', 'ok'); })
+                .catch(function (e) { Career.toast(e.message, 'error'); });
+        });
+
+        pasteInfo1();
+        renderSaved1();
     })();
 
     rebuild();

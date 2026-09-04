@@ -25,7 +25,7 @@
     <div class="steps">
         <div class="step on"><span class="n">STEP 1</span><span class="t">학생 정보 입력 → 프롬프트 복사</span></div>
         <div class="step"><span class="n">STEP 2</span><span class="t">AI 화면에 붙여넣고 실행</span></div>
-        <div class="step"><span class="n">STEP 3</span><span class="t">받은 결과를 되돌려 넣기</span></div>
+        <div class="step"><span class="n">STEP 3</span><span class="t">AI 결과 붙여넣기</span></div>
     </div>
 
     <div class="panel">
@@ -54,7 +54,7 @@
             <button type="button" class="btn btn-primary grow" id="copyBtn">프롬프트 생성하고 복사하기</button>
             <button type="button" class="btn btn-ghost" id="previewBtn">원문 보기</button>
             <select id="aiService" class="quick" style="max-width:150px;margin-bottom:0" title="열 AI 서비스 선택"></select>
-            <a class="btn btn-ghost" id="aiOpenBtn" href="https://claude.ai/new" target="_blank" rel="noopener noreferrer">AI 화면 열기</a>
+            <a class="btn btn-ghost" id="aiOpenBtn" href="https://claude.ai/new" target="_blank" rel="noopener noreferrer">AI 화면 열기(꼭 복사해오세요)</a>
         </div>
         <p class="size" id="sizeInfo" style="margin-top:10px">프롬프트를 준비하는 중…</p>
         <div class="mono-box" id="preview" hidden></div>
@@ -84,7 +84,8 @@
         return;
     }
     document.getElementById('caseTitle').textContent = kase.label;
-    document.getElementById('nextBtn').href = 'career-report1.html?case=' + encodeURIComponent(kase.id);
+    /* 1차 결과 붙여넣기는 career-step2.html 로 합쳐졌다(2026-09-04) — 별도 페이지 없음. */
+    document.getElementById('nextBtn').href = 'career-step2.html?case=' + encodeURIComponent(kase.id);
 
     /* ------------------------------------------------------------ 폼 생성 */
 

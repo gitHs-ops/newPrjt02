@@ -148,6 +148,7 @@
             <button type="button" class="btn btn-ghost" id="mdBtn">md 파일로 저장</button>
             <button type="button" class="btn btn-ghost" id="bothBtn">1·2차 합본 저장</button>
             <button type="button" class="btn btn-ghost" id="resultCopyBtn">결과 복사</button>
+            <button type="button" class="btn btn-ghost" id="obsBtn">옵시디언 새노트로 내보내기</button>
         </div>
         <div class="report" id="report"></div>
     </div>
@@ -157,6 +158,39 @@
         <a class="btn btn-ghost" href="career.html">처음으로</a>
     </div>
 
+</div>
+
+<!-- 옵시디언 연결 정보 -->
+<div class="modal-backdrop" id="obsModal" role="dialog" aria-modal="true" aria-labelledby="obsTitle">
+    <div class="modal">
+        <button type="button" class="modal-close" id="obsClose" aria-label="닫기">✕</button>
+        <h2 id="obsTitle">옵시디언 연결 정보</h2>
+        <p class="desc">
+            옵시디언의 <b>Local REST API</b> 플러그인 설정에서 API 키를 복사해 넣으십시오.
+            이 값은 <b>이 브라우저에만</b> 저장됩니다. 연결이 되는지 확실하지 않다면
+            <code>tools/obsidian-check.html</code> 로 먼저 진단해 보십시오.
+        </p>
+        <div id="obsBanner" class="banner" role="alert"></div>
+        <div class="field">
+            <label for="obsBase">서버 주소</label>
+            <select id="obsBase">
+                <option value="https://127.0.0.1:27124">https://127.0.0.1:27124 (기본·자체서명)</option>
+                <option value="http://127.0.0.1:27123">http://127.0.0.1:27123 (비암호화·옵션)</option>
+            </select>
+        </div>
+        <div class="field">
+            <label for="obsFolder">폴더</label>
+            <div class="input-wrap"><input type="text" id="obsFolder" placeholder="예: 진로상담" autocomplete="off"></div>
+        </div>
+        <div class="field">
+            <label for="obsKey">API 키</label>
+            <div class="input-wrap"><input type="password" id="obsKey" placeholder="플러그인 설정에서 복사" autocomplete="off"></div>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-ghost" id="obsCancel">취소</button>
+            <button type="button" class="btn btn-primary" id="obsSave">저장하고 내보내기</button>
+        </div>
+    </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -505,6 +539,57 @@
             Career.copyText(Career.getCase(kase.id).report2.md)
                 .then(function () { Career.toast('결과를 복사했습니다.', 'ok'); })
                 .catch(function (e) { Career.toast(e.message, 'error'); });
+        });
+
+        /* ---------- 옵시디언 새노트로 내보내기 ---------- */
+        var obsModal  = document.getElementById('obsModal');
+        var obsBanner = document.getElementById('obsBanner');
+
+        function hideObsBanner() { obsBanner.className = 'banner'; obsBanner.textContent = ''; }
+        function showObsBanner(msg, kind) {
+            obsBanner.textContent = msg;
+            obsBanner.className = 'banner show ' + (kind || 'error');
+        }
+
+        function openObsModal() {
+            hideObsBanner();
+            var cfg = Career.getObsidianConfig() || {};
+            document.getElementById('obsBase').value = cfg.base || 'https://127.0.0.1:27124';
+            document.getElementById('obsFolder').value = cfg.folder || '';
+            document.getElementById('obsKey').value = cfg.key || '';
+            obsModal.classList.add('show');
+        }
+        function closeObsModal() { obsModal.classList.remove('show'); }
+
+        function exportToObsidian() {
+            var btn = document.getElementById('obsBtn');
+            btn.disabled = true;
+            Career.sendToObsidian(kase, 2, Career.getCase(kase.id).report2.md)
+                .then(function (r) {
+                    Career.toast('옵시디언에 저장했습니다 — ' + r.path, 'ok');
+                })
+                .catch(function (e) { Career.toast(e.message, 'error'); })
+                .then(function () { btn.disabled = false; });
+        }
+
+        document.getElementById('obsBtn').addEventListener('click', openObsModal);
+        document.getElementById('obsClose').addEventListener('click', closeObsModal);   // 우측 상단 X
+        document.getElementById('obsCancel').addEventListener('click', closeObsModal);  // 하단 취소
+        obsModal.addEventListener('click', function (e) { if (e.target === obsModal) closeObsModal(); });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && obsModal.classList.contains('show')) closeObsModal();
+        });
+
+        document.getElementById('obsSave').addEventListener('click', function () {
+            var key = document.getElementById('obsKey').value.trim();
+            if (!key) { showObsBanner('API 키를 입력하십시오.', 'error'); return; }
+            Career.setObsidianConfig({
+                base: document.getElementById('obsBase').value,
+                folder: document.getElementById('obsFolder').value.trim(),
+                key: key
+            });
+            closeObsModal();
+            exportToObsidian();
         });
 
         pasteInfo();

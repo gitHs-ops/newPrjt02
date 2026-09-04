@@ -620,6 +620,56 @@
         saveBlob(withFrontMatter(k, '1-2', body), fileName(k, '1-2합본'));
     }
 
+    /* --------------------------------------------------------- 옵시디언 */
+
+    /* Obsidian **Local REST API** 커뮤니티 플러그인으로 직접 PUT 한다(career-009).
+       한 번 만들었다가 CORS·자체서명 인증서 문제로 연결이 불확실해 지웠던 이력이
+       있다 — tools/obsidian-check.html 이 그 진단 도구로 남아 있다. 되살릴 때도
+       그 도구로 먼저 확인하는 편이 안전하다. 주소·API 키·폴더는 이 브라우저의
+       localStorage 에만 남는다(계정 시스템이 없으니 서버로 보낼 곳도 없다). */
+    var OBSIDIAN_KEY = 'np_obsidian_config';
+
+    function getObsidianConfig() {
+        try { return JSON.parse(localStorage.getItem(OBSIDIAN_KEY) || 'null'); }
+        catch (e) { return null; }
+    }
+    function setObsidianConfig(cfg) { localStorage.setItem(OBSIDIAN_KEY, JSON.stringify(cfg)); }
+
+    /**
+     * kase/round/md 를 옵시디언 볼트에 새 노트로 만든다(PUT — 있으면 덮어쓴다).
+     * 파일명은 downloadMd 와 같은 규칙(fileName)을 써서, 다운로드한 md 와
+     * 옵시디언에 올라간 노트의 이름이 같게 맞춘다.
+     */
+    function sendToObsidian(kase, round, md) {
+        var cfg = getObsidianConfig();
+        if (!cfg || !cfg.base || !cfg.key) {
+            return Promise.reject(new Error('옵시디언 연결 정보가 없습니다. 서버 주소·API 키를 먼저 입력하십시오.'));
+        }
+        var name = fileName(kase, round);
+        var path = (cfg.folder ? cfg.folder.replace(/^\/+|\/+$/g, '') + '/' : '') + name;
+        var url = cfg.base + '/vault/' + encodeURI(path);
+        return fetch(url, {
+            method: 'PUT',
+            mode: 'cors',
+            headers: {
+                'Authorization': 'Bearer ' + cfg.key,
+                'Content-Type': 'text/markdown; charset=utf-8'
+            },
+            body: withFrontMatter(kase, round, md)
+        }).then(function (r) {
+            if (r.ok || r.status === 204) { return { path: path }; }
+            return r.text().then(function (tx) {
+                throw new Error('옵시디언 저장 실패 (HTTP ' + r.status + ')' + (tx ? ' — ' + tx.slice(0, 200) : ''));
+            });
+        }).catch(function (e) {
+            if (e instanceof TypeError) {
+                throw new Error('옵시디언에 연결하지 못했습니다 — Local REST API 플러그인이 켜져 있는지, ' +
+                    '자체서명 인증서를 신뢰했는지 확인하십시오. tools/obsidian-check.html 로 먼저 진단해 보십시오.');
+            }
+            throw e;
+        });
+    }
+
     /* ---------------------------------------------------------- UI 보조 */
 
     function toast(msg, kind) {
@@ -678,6 +728,11 @@
         fileName: fileName,
         downloadMd: downloadMd,
         downloadCombined: downloadCombined,
+
+        /* 옵시디언 */
+        getObsidianConfig: getObsidianConfig,
+        setObsidianConfig: setObsidianConfig,
+        sendToObsidian: sendToObsidian,
 
         /* UI */
         toast: toast

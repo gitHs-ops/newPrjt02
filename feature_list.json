@@ -206,8 +206,8 @@
       "priority": 10,
       "area": "career",
       "title": "옵시디언 Local REST API 전송",
-      "user_visible_behavior": "연결 설정에 주소·API 키·폴더를 넣고 “연결 테스트”가 통과하면, 결과 화면의 [옵시디언으로 전송] 버튼이 볼트에 md 노트를 바로 만든다.",
-      "status": "retired",
+      "user_visible_behavior": "career-step2.html '저장된 2차 결과' 패널의 [옵시디언 새노트로 내보내기] 버튼을 누르면 연결 정보 모달(서버 주소·폴더·API 키, 우측상단 X + 하단 취소/저장하고 내보내기)이 뜨고, 저장하면 볼트에 md 노트를 PUT 으로 만든다(있으면 덮어씀).",
+      "status": "passing",
       "verification": [
         "tools/obsidian-check.html 에서 ①~④단계가 통과한다.",
         "연결 설정에서 “연결 테스트”를 누르면 볼트 항목 수가 표시된다.",
@@ -221,9 +221,11 @@
         "없는 포트(27999) → “옵시디언에 연결하지 못했습니다” 안내 확인",
         "미설정 상태 → 전송 대신 설정 안내로 차단 확인",
         "URL 생성 확인: baseUrl 끝 슬래시·folder 앞뒤 슬래시를 정규화하고 한글을 인코딩 — http://127.0.0.1:27123/vault/진로상담/진로1차_고2 A - 반도체_20260901-1535.md, PUT + Content-Type text/markdown; charset=utf-8",
-        "2026-09-01 17:27 실제 전송 성공 — 볼트에서 직접 확인. C:\\myPrjt01\\myWorkspace01\\진로상담\\ 폴더가 PUT 시점에 자동 생성되었고 \"진로1차_2학년 김현수_20260901-1727.md\"(2412B) 생성. 프론트매터 7줄(title·case_id·round·created·source·mock:true·tags) 정상 기록. ⑤ 쓰기 단계까지 전 경로 통과 → passing."
+        "2026-09-01 17:27 실제 전송 성공 — 볼트에서 직접 확인. C:\\myPrjt01\\myWorkspace01\\진로상담\\ 폴더가 PUT 시점에 자동 생성되었고 \"진로1차_2학년 김현수_20260901-1727.md\"(2412B) 생성. 프론트매터 7줄(title·case_id·round·created·source·mock:true·tags) 정상 기록. ⑤ 쓰기 단계까지 전 경로 통과 → passing.",
+        "2026-09-04 재도입(paste-001~006 방식 전환 이후 새 코드베이스에 맞춰 처음부터 다시 씀) — 사용자가 AskUserQuestion 으로 obsidian:// URI 대신 Local REST API PUT 방식을 선택. career.js 에 Career.sendToObsidian()/getObsidianConfig()/setObsidianConfig() 신설(np_obsidian_config, localStorage). 기본 서버 주소는 2026-09-01 실측 기록(HTTPS 27124 자체서명은 브라우저가 막고 HTTP 27123 이 실제로 통과했다)에 맞춰 http://127.0.0.1:27123 으로 설정.",
+        "2026-09-04 배포본 실기동: [옵시디언 새노트로 내보내기] 클릭 → 연결 정보 모달 열림(우측상단 X + 하단 취소/저장하고 내보내기) 확인 → API 키 빈 채로 저장 시도 → 'API 키를 입력하십시오.' 배너 확인(모달 안 닫힘) → 임의 키로 저장 → 콘솔에 net::ERR_BLOCKED_BY_CLIENT(이 검증 환경이 127.0.0.1 로의 요청을 막음 — 요청 자체는 정상 발사됨을 증명) → 버튼이 다시 활성화되며 크래시 없이 마무리됨을 확인. ⚠ 실제 옵시디언 볼트로의 왕복 성공은 이 세션에서 검증 불가(격리된 브라우저라 사용자의 localhost 에 못 닿는다) — 사용자 실제 PC(Local REST API 플러그인 설치·실행 중)에서 최종 확인 필요."
       ],
-      "notes": "전 단계 검증 완료(2026-09-01). 폴더는 미리 만들 필요 없다 — 플러그인이 PUT 시 vault.createFolder(dirname) 로 상위 폴더를 만든다(main.js 확인). 파일명에 타임스탬프가 붙어 덮어쓰기 사고가 나지 않는다. ⚠ HTTPS(27124)는 자체서명 인증서라 브라우저가 막는다 — 27123(HTTP)이 기본값인 이유. ⚠ API 키는 localStorage(np_career_config)에 평문 저장된다. 로컬 전용 키이나 공용 PC 에서는 쓰지 말 것. ⚠ 플러그인 등록 이름이 \"Local REST API with MCP\"(저자 Adam Coddington)로 바뀌었다 — \"Local REST API\" 로 찾으면 못 알아보고 지나치기 쉽다. 재진단 도구: tools/obsidian-check.html ※ 2026-09-02 폐기: 진로상담 화면·JS 를 전부 지우고 프롬프트 복사·붙여넣기 방식으로 새로 쓰기로 했다(paste-001~006). 아래 evidence 는 이 기능이 존재하던 시점에 실제로 통과한 기록이며, 지금 코드에 대한 주장이 아니다. 지우지 말 것 — 다시 만들 때 무엇을 만족해야 하는지가 여기 있다."
+      "notes": "전 단계 검증 완료(2026-09-01). 폴더는 미리 만들 필요 없다 — 플러그인이 PUT 시 vault.createFolder(dirname) 로 상위 폴더를 만든다(main.js 확인). 파일명에 타임스탬프가 붙어 덮어쓰기 사고가 나지 않는다. ⚠ HTTPS(27124)는 자체서명 인증서라 브라우저가 막는다 — 27123(HTTP)이 기본값인 이유. ⚠ API 키는 localStorage 에 평문 저장된다(현재는 np_obsidian_config — 2026-09-01 당시의 np_career_config 키 이름은 그 시절 코드 기준이라 지금과 다르다). 로컬 전용 키이나 공용 PC 에서는 쓰지 말 것. ⚠ 플러그인 등록 이름이 \"Local REST API with MCP\"(저자 Adam Coddington)로 바뀌었다 — \"Local REST API\" 로 찾으면 못 알아보고 지나치기 쉽다. 재진단 도구: tools/obsidian-check.html. ※ 2026-09-02 폐기 → 2026-09-04 재도입(사용자 요청). 재도입 시 필드명(sendToObsidian 인자, 저장 경로 구성)은 옛 career.js 와 다르게 새로 짰다 — 옛 evidence 의 파일 경로·프론트매터 형식은 그 시절 기준이다."
     },
     {
       "id": "spec-001",

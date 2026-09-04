@@ -120,7 +120,7 @@
         <p class="size" id="sizeInfo" style="margin-top:10px">프롬프트를 준비하는 중…</p>
     </div>
 
-    <div class="panel">
+    <div class="panel" id="pastePanel" hidden>
         <div class="panel-head">
             <h2>2차결과 붙여넣기</h2>
             <button type="button" class="btn-inline" id="pasteClipBtn">붙여넣기</button>
@@ -355,11 +355,12 @@
     document.getElementById('copyBtn').addEventListener('click', function () {
         if (!promptText) { Career.toast('프롬프트가 아직 준비되지 않았습니다.', 'error'); return; }
 
-        /* 프롬프트를 복사한 뒤에야 [AI 화면 열기]가 의미 있다 — 순서를 강제한다. */
+        /* 프롬프트를 복사한 뒤에야 [AI 화면 열기]·붙여넣기 칸이 의미 있다 — 순서를 강제한다. */
         var open = document.getElementById('aiOpenBtn');
         open.classList.remove('disabled');
         open.removeAttribute('aria-disabled');
         open.removeAttribute('title');
+        document.getElementById('pastePanel').hidden = false;
 
         Career.copyText(promptText).then(function () {
             Career.toast('2차 프롬프트 ' + promptText.length.toLocaleString() + '자를 복사했습니다.' +

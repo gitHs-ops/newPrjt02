@@ -585,15 +585,14 @@
                         ? ' ⚠ 완결성 확인 ' + chk.problems.length + '건 — ' + chk.problems[0]
                         : ''),
                     chk.problems.length ? '' : 'ok');
-                pasteTa1.value = '';
-                pasteInfo1();
-                document.getElementById('check1').hidden = true;
-                renderSaved1();
+                /* 붙여넣은 내용을 지우거나 저장된 1차 결과 패널로 스크롤하지 않는다
+                   (2026-09-04, 사용자 요청) — 저장만 하고 화면은 그대로 둔다.
+                   다만 kase 는 새로고침해야 아래 두 줄이 방금 저장한 내용을 본다. */
+                kase = Career.getCase(kase.id);
                 /* 1차가 방금 생겼거나 바뀌었으니, 2차 프롬프트도 새 1차 내용으로 다시 만든다 —
                    새로고침 없이 바로 반영돼야 "1차 저장했는데 2차 프롬프트가 그대로다" 를 피한다. */
                 updateR1Info();
                 rebuild();
-                document.getElementById('savedPanel1').scrollIntoView({ behavior: 'smooth', block: 'start' });
             } catch (e) {
                 Career.toast(e.message, 'error');
                 pasteTa1.focus();

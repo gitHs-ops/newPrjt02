@@ -1741,3 +1741,35 @@ hidden 오버라이드 버그 수정. 전부 푸시·배포 확인 완료.
 `career-009` — evidence 갱신, `retired` → `passing`(위 caveat 명시).
 `paste-007`/`career-011` 관련 헤더 레이아웃은 각 evidence 에 반영 안 함
 (레이아웃 전용 변경이라 별도 언급 없이 이 세션 로그로 충분하다고 판단).
+
+### Session 027 — 1차 저장 전 2차 내용 숨김, 사례 이름 중복 체크
+
+#### 한 일
+
+1. **1차 저장 전까지 2차 내용 전체 숨김 (`paste-007`)** — `career-step2.html`
+   의 "사례" 패널부터 "2차 프롬프트" 패널까지를 `#step2Content` 로 묶어
+   `report1` 이 없으면 `hidden`. `updateR1Info()` 에서 함께 토글하므로
+   `saveBtn1` 저장 즉시 드러난다(새로고침 불필요). "2차결과 붙여넣기"/
+   "저장된 2차 결과" 패널은 원래도 각자 별도 조건으로 숨어 있었으니 그대로.
+2. **사례 이름 중복 체크 (`career-012`, 신설)** — `career.html` "새 사례"
+   입력칸에 실시간 경고(`.field .note.warn`, `career.css` 에 색상 규칙
+   추가) + 생성 시 `confirm()` 재확인. 하드 게이트가 아니라 확인
+   절차로만 넣었다 — 같은 학생을 다시 분석하는 경우가 있어서다.
+
+#### Verification run
+
+- `.\init.ps1` → **82개 항목 전부 `[OK]`, exit 0** (매 커밋마다 재실행)
+- 배포본 실기동(숨김): 1차 없음 → `step2Content.hidden === true` 확인 →
+  완결성 통과하는 1차(4,164자)를 `saveBtn1.click()` 으로 저장 →
+  `hidden === false`·`r1info` 동시 갱신 확인. (도중 `computer` 툴의 좌표
+  클릭이 스크롤 위치 어긋남으로 한 번 빗나갔다 — `element.click()` 직접
+  호출로 재확인해 실제 기능은 문제없음을 확인)
+- 배포본 실기동(중복 체크): 기존 '중복테스트' 사례가 있는 상태에서 같은
+  이름 입력 → 실시간 경고 표시 확인 → 생성 클릭 → `confirm()` 호출과
+  문구 확인(이 세션 도구가 네이티브 dialog 를 자동 취소로 억제) →
+  `Career.listCases().length` 그대로 1(중복 생성 안 됨) 확인
+- 테스트 사례는 검증 후 정리.
+
+#### 상태
+
+`paste-007` evidence 갱신(그대로 `passing`). `career-012` 신설·`passing`.

@@ -609,7 +609,8 @@
         "2026-09-04: career-step1.html 의 'AI 분석결과 붙여넣기로' 버튼을 [AI 화면 열기]를 누르기 전까지 비활성화(CSS a.btn.disabled + pointer-events:none, 클릭 시 해제)로 바꿈 — 프롬프트를 복사해 AI 화면에 가지 않고 바로 다음으로 넘어가는 걸 막는다. career-step2.html 의 1·2차 저장 버튼(saveBtn1/saveBtn)도 완결성 검사(checkReport)에 문제가 있으면 비활성화하도록 강화(기존엔 경고만 띄우고 저장은 허용했었다 — 사용자 요청으로 하드 게이트로 전환). 실브라우저로 두 화면 모두 확인: 비활성 초기상태·시각 효과(opacity/pointer-events)·[AI 화면 열기] 클릭 후 해제, 불완전한 텍스트 입력 시 1·2차 저장 버튼 모두 비활성 유지 확인. init.ps1 -> 82개 항목 전부 [OK], exit 0.",
         "2026-09-04: '생성하고 복사하기'(2차 프롬프트) 버튼을 기본 비활성으로 바꾸고, 1차 결과(kase.report1)에 Career.checkReport(md, 1) 을 다시 돌려 problems 가 0건일 때만 활성화하도록 강화 — saveBtn1 이 저장 시점엔 이미 막지만, 그 이전에 저장된 데이터가 남아 있을 수 있어 표시 시점에 재검사한다. 배포본 실기동: (1) 1차 없음 → disabled 확인 (2) Career.saveReport 로 14자짜리 가짜 1차를 직접 저장(완결성 미통과) → 새로고침 후에도 disabled 유지, r1info 에 '⚠ 완결성 검사 미통과 — 섹션 누락: A, B, ...' 표시 확인 (3) A~L·소제목3·면책문장·4,164자 를 갖춘 합성 1차를 저장 → disabled 해제 확인 → 실제 클릭으로 [AI 화면 열기] 도 연쇄 활성화되는 것까지 확인. init.ps1 -> 82개 항목 전부 [OK], exit 0.",
         "2026-09-04: 세 가지를 한 번에 손봤다 — (1) '1차 AI 분석결과 붙여넣기'·'2차결과 붙여넣기' 헤딩 옆에 [붙여넣기] 버튼 추가(Career.pasteFromClipboard() 신설, navigator.clipboard.readText() 사용, execCommand 로는 읽기를 대체할 수 없어 실패 시 Ctrl+V 안내로 대체). (2) saveBtn1 라벨을 '저장하기'->'1차 분석 결과 저장하기'로 정정. (3) saveBtn1 클릭 후 붙여넣은 텍스트를 지우고 savedPanel1 로 스크롤하던 동작을 제거(사용자 요청, 불필요한 화면 전환) — 대신 kase 를 다시 읽어와 updateR1Info()/rebuild() 는 그대로 호출해 2차 게이팅이 저장 직후 값을 놓치지 않게 했다. (4) '2차결과 붙여넣기' 패널을 기본 hidden 으로 바꾸고 2차 copyBtn 클릭 시에만 드러나도록 변경(프롬프트를 복사하기 전엔 붙여넣을 칸이 안 보이는 게 자연스럽다는 사용자 요청). 배포본 실기동: 1차 완결성 통과 텍스트(4,165자) 입력 → 저장 → pasted1.value.length 그대로 4,165(안 비워짐) 확인, r1info 즉시 갱신, copyBtn 활성화 확인 → pastePanel.hidden===true(아직 복사 전) 확인 → copyBtn 실제 클릭 → pastePanel.hidden===false·aiOpenBtn 활성화 동시 확인 → [붙여넣기] 버튼 실제 클릭, 콘솔 에러 0(권한 거부든 성공이든 예외 없이 처리됨) 확인. init.ps1 -> 82개 항목 전부 [OK], exit 0.",
-        "2026-09-04: saveBtn(2차) 클릭 후 pasteTa 를 비우던 한 줄만 제거 — renderSaved()·savedPanel 로의 scrollIntoView 는 그대로 둔다(1차 쪽과 다르게 '저장된 결과 표시' 자체는 유지하고 '붙여넣은 원문이 사라지는 것'만 막아 달라는 요청이었다). init.ps1 -> 82개 항목 전부 [OK], exit 0."
+        "2026-09-04: saveBtn(2차) 클릭 후 pasteTa 를 비우던 한 줄만 제거 — renderSaved()·savedPanel 로의 scrollIntoView 는 그대로 둔다(1차 쪽과 다르게 '저장된 결과 표시' 자체는 유지하고 '붙여넣은 원문이 사라지는 것'만 막아 달라는 요청이었다). init.ps1 -> 82개 항목 전부 [OK], exit 0.",
+        "2026-09-04: '사례' 패널부터 '2차 프롬프트' 패널까지(#step2Content)를 report1 이 없으면 통째로 hidden 처리 — 1차를 저장하기도 전에 2차 입력 화면부터 보이는 게 혼란스럽다는 사용자 요청. updateR1Info() 에서 함께 토글하므로 saveBtn1 저장 즉시(새로고침 없이) 드러난다. 배포본 실기동: 1차 없음 → step2Content.hidden===true 확인 → 완결성 통과하는 1차(4,164자) 저장 → hidden===false·r1info 갱신 동시 확인. init.ps1 -> 82개 항목 전부 [OK], exit 0."
       ],
       "notes": "1차 결과가 없으면 2차 화면이 경고를 띄우고 프롬프트에도 '⚠ 1차 결과 없음' 을 표시한다 — 조용히 빈 입력으로 나가지 않는다. 합본 버튼은 1차가 없으면 비활성이다. ※ 2026-09-03: career-report2.html 은 더 이상 없다 — '2차결과 붙여넣기' 패널이 career-step2.html 안에 있다. 버튼 문구도 이때 '프롬프트 복사'→'생성하고 복사하기'로 바뀌었다. ※ 2026-09-04: 1차 결과가 있어도 완결성 검사를 통과 못 하면 2차로 못 넘어간다(사용자 요청) — updateR1Info() 가 1차 저장·페이지 로드마다 재평가한다. ※ 2026-09-04(추가): 2차 붙여넣기 패널은 copyBtn 을 눌러야 나타난다 — 새로고침하면 다시 숨는다(이번 세션에 재클릭 안 했으면). 저장된 2차 결과(savedPanel)는 이것과 별개 요소라 영향 없다."
     },
@@ -701,6 +702,25 @@
         "init.ps1 → 82개 항목 전부 [OK], exit 0 — login.html/signup.html/error.html/assets/auth.js 폐기 확인(되살아나면 FAIL로 반전), career 화면이 auth.css 를 참조하지만 auth.js 는 참조하지 않음을 확인하는 검사로 교체"
       ],
       "notes": "auth.css(디자인 시스템)는 남겼다 — career 화면들이 .btn/.field/.modal 등을 그 파일에서 그대로 가져다 쓴다. career.js 의 currentOwner()/owner 필드도 함께 제거했다(계정이 없으니 소유자 구분 자체가 무의미) — listCases() 가 이제 저장된 사례를 전부 반환한다. auth-001~007 은 evidence 를 보존한 채 retired 로 옮겼다."
+    },
+    {
+      "id": "career-012",
+      "priority": 33,
+      "area": "career",
+      "title": "사례 이름 중복 체크",
+      "user_visible_behavior": "career.html '새 사례'에서 이미 있는 이름을 입력하면 입력칸 아래에 경고가 뜨고, [사례 만들고 시작하기]를 누르면 한 번 더 확인을 받는다 — 생성 자체를 막지는 않는다.",
+      "status": "passing",
+      "verification": [
+        "이미 있는 이름을 입력하면 '⚠ 같은 이름의 사례가 이미 있습니다.' 가 실시간으로 뜬다.",
+        "비교는 대소문자·앞뒤 공백을 무시한다.",
+        "중복 상태에서 생성을 누르면 confirm 으로 재확인하고, 취소하면 생성되지 않는다.",
+        "중복이 아니면 평소처럼 바로 생성된다."
+      ],
+      "evidence": [
+        "2026-09-04 배포본 실기동: '중복테스트' 사례를 미리 만들어 두고 같은 이름을 입력 → labelHint 가 'note warn' 클래스로 경고 문구 표시 확인 → [사례 만들고 시작하기] 클릭 → 콘솔에 confirm() 호출과 그 문구('...이미 있습니다. 그래도 새로 만들까요?') 확인(이 검증 도구가 네이티브 confirm 을 억제해 자동으로 취소로 처리됨) → Career.listCases().length 가 여전히 1(중복 생성 안 됨) 확인",
+        "init.ps1 → 82개 항목 전부 [OK], exit 0"
+      ],
+      "notes": "학생을 다시(예: 학기가 바뀌어) 분석하는 경우도 있어 하드 게이트가 아니라 확인 절차로만 넣었다 — career-step2.html 의 완결성 검사(하드 게이트, paste-007)와는 성격이 다르다."
     }
   ]
 }

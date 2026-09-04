@@ -480,9 +480,8 @@
                         ? ' ⚠ 완결성 확인 ' + chk.problems.length + '건 — ' + chk.problems[0]
                         : ''),
                     chk.problems.length ? '' : 'ok');
-                pasteTa.value = '';
-                pasteInfo();
-                document.getElementById('check').hidden = true;
+                /* 붙여넣은 내용은 지우지 않는다(2026-09-04, 사용자 요청) — 저장된 결과를
+                   보여주는 것과 별개로 방금 붙여넣은 원문도 그대로 남겨 둔다. */
                 renderSaved();
                 document.getElementById('savedPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
             } catch (e) {

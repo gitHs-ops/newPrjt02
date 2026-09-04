@@ -54,12 +54,15 @@
         </p>
         <div class="btn-row">
             <button type="button" class="btn btn-primary grow" id="copyBtn">프롬프트 생성하고 복사하기</button>
-            <button type="button" class="btn btn-ghost" id="previewBtn">원문 보기</button>
             <a class="btn btn-ghost disabled" id="aiOpenBtn" href="https://claude.ai/new" rel="noopener noreferrer"
                aria-disabled="true" title="먼저 [프롬프트 생성하고 복사하기]를 눌러야 활성화됩니다">AI 화면 열기(꼭 복사해오세요)</a>
             <select id="aiService" class="quick" style="max-width:150px;margin-bottom:0" title="열 AI 서비스 선택"></select>
         </div>
-        <p class="size" id="sizeInfo" style="margin-top:10px">프롬프트를 준비하는 중…</p>
+        <div class="panel-head" style="margin-top:10px;margin-bottom:0">
+            <p class="size" id="sizeInfo">프롬프트를 준비하는 중…</p>
+            <button type="button" class="btn btn-ghost" id="previewBtn"
+                    style="width:auto;flex:0 0 auto;padding-left:20px;padding-right:20px">원문 보기</button>
+        </div>
         <div class="mono-box" id="preview" hidden></div>
     </div>
 

@@ -19,7 +19,6 @@
     <div class="doc-head">
         <span class="logo">🧭</span>
         <h1>1차 입력 · 프롬프트 복사</h1>
-        <span class="who" id="whoami">—</span>
     </div>
 
     <div class="steps">
@@ -36,7 +35,7 @@
             여러 개를 연달아 담을 수 있고, 직접 타이핑해도 됩니다.
             <strong>개인식별정보·민감정보는 넣지 마십시오.</strong>
         </p>
-        <div class="btn-row" style="margin-top:0;margin-bottom:16px">
+        <div class="btn-row end" style="margin-top:0;margin-bottom:16px">
             <button type="button" class="btn btn-ghost" id="sampleBtn"
                     title="테스트용 예시로 전 항목 채우기">예시 채우기</button>
             <button type="button" class="btn btn-ghost" id="clearBtn">예시 지우기</button>
@@ -71,12 +70,10 @@
 
 <div class="toast" id="toast"></div>
 
-<script src="assets/auth.js"></script>
 <script src="assets/career.js"></script>
 <script>
 (function () {
     'use strict';
-    if (!Career.mountChrome()) { return; }
 
     var id = new URLSearchParams(location.search).get('case');
     var kase = id && Career.getCase(id);

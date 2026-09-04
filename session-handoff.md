@@ -42,15 +42,18 @@ Session 012.
 ## `init.ps1` 이 세 방향으로 지키는 것
 
 1. **폐기 코드가 되살아나지 않는가** — `home.html`, `career_proxy.example.gs`,
-   `fetch(endpoint)` 류 자동 호출 경로. 셋 다 되살아나면 `[FAIL]`
+   `login.html`/`signup.html`/`error.html`/`assets/auth.js`, `fetch(endpoint)` 류
+   자동 호출 경로. 전부 되살아나면 `[FAIL]`
 2. **새 방식이 실제로 갖춰져 있는가** — AI 서비스 선택 드롭다운, 완결성 검사,
    예시 채우기, 붙여넣은 md 이스케이프 등
-3. **로그인 데모·프롬프트 원문·구글시트 관련 문서(경위)** — 그대로 유지
+3. **프롬프트 원문·구글시트 관련 문서(경위)** — 그대로 유지
 
 ## Verified Now
 
-- **로그인 데모** — `index.html` → `login.html` → `career.html`(성공, `home.html`
-  경유 안 함) / `error.html`, `signup.html`
+- **로그인 없음 (2026-09-04 완전 제거)** — `index.html` → `career.html` 로 바로
+  간다. `login.html`/`signup.html`/`error.html`/`assets/auth.js` 는 지웠다(`git rm`,
+  이력에 남아 복원 가능). 사례는 더는 계정별로 안 나뉜다 — 이 브라우저의 사례를
+  전부 같이 본다
 - **진로상담(복사·붙여넣기) — 전 구간 동작 확인.**
   - `career.html` 진입 → 사례 생성 → 1차 입력(드롭다운·빠른 선택·예시 채우기)
     → 1차 프롬프트 복사 → (사람이 AI 화면에 붙여넣기) → 결과 붙여넣기 →
@@ -58,17 +61,18 @@ Session 012.
   - 옵시디언 전송은 새 버전에 없다(`career-009` retired). 진단 도구
     `tools/obsidian-check.html` 만 남아 있다
 - **실제로 돌린 검증**
-  1. `.\init.ps1` → **79개 항목 전부 `[OK]`, exit 0**
-  2. 실기동 — 로그인 성공 → `career.html` 직행 확인(Session 015), 클립보드 쓰기·
+  1. `.\init.ps1` → **82개 항목 전부 `[OK]`, exit 0** (Session 023 기준)
+  2. 실기동 — `career.html` 직행 확인(로그인 없음, Session 023), 클립보드 쓰기·
      예시 채우기·완결성 검사 각각 실제 클릭으로 확인(Session 009~014)
   3. ⚠ **사람이 한 번 확인해야 닫히는 것**: 복사된 프롬프트를 실제 AI 화면에
      붙여넣어 잘리지 않고 들어가는지. `clipboard.readText` 권한과 합성 `Ctrl+V` 가
-     막혀 자동 검증이 안 된다 — 쓰기 성공과 글자 수까지만 확인했다
+     막혀 자동 검증이 안 된다 — 쓰기 성공과 글자 수까지만 확인했다. AI 화면 열기가
+     실제로 팝업 창으로 뜨는지도 이 세션의 검증 도구 한계로 미확인(Session 022)
 
 ## 지금 이 앱에 붙어 있는 외부 연결
 
 없음. AI 호출·프록시·시트 기록·옵시디언 전송 전부 이 앱 밖(사람 손 또는 미구현)이다.
-로그인 데모의 계정·세션은 `localStorage`/`sessionStorage` 뿐이다.
+계정·로그인도 없다(2026-09-04 완전 제거).
 
 ## 바꾸면 안 되는 것
 
@@ -85,11 +89,13 @@ Session 012.
 
 ## Next Best Step
 
-1. **실사용 전환 검토** — newPrjt01(GAS 프록시 경로)과 이 저장소(복사·붙여넣기)
-   중 어느 쪽을 실제 배포로 밀지 결정. 이번 실측으로 이 저장소 쪽이 유력
-2. 사람이 붙여넣는 실제 붙여넣기 테스트를 몇 차례 더 돌려 클립보드 경로의
+1. 사람이 붙여넣는 실제 붙여넣기 테스트를 몇 차례 더 돌려 클립보드 경로의
    신뢰도를 쌓는다
-3. 보류된 **`auth-006`(서버 인증)** 재개 — 사례가 브라우저별로 격리되는 한계 해소
+2. **[AI 화면 열기]가 실제 배포본에서 팝업 창으로 뜨는지 사용자 확인 필요**
+   (Session 022 — 이 세션의 검증 도구가 `window.open` 이 만드는 새 창을
+   추적하지 못해 코드 실행만 확인했다)
+3. `auth-006`/`auth-007`(서버 인증·실제 OAuth)은 로그인 자체가 없어져
+   `retired` 로 닫혔다 — 더 이상 과제가 아니다
 
 ## Commands
 
@@ -99,7 +105,6 @@ Session 012.
   - 잘림·인코딩 사고를 잡는다. 붙여넣기 경로를 고쳤으면 **반드시** 이걸로 확인
 - **Focused debug**
   - 서버만: `python -m http.server 8941`
-  - 진로상담: http://localhost:8941/career.html (로그인 필요)
+  - 진로상담: http://localhost:8941/career.html (로그인 없음, 바로 진입)
   - 옵시디언 연결 진단: http://localhost:8941/tools/obsidian-check.html
-  - 초기화: `localStorage.removeItem('np_users' / 'np_career_cases' /
-    'np_career_config' / 'np_career_usage')`
+  - 초기화: `localStorage.removeItem('np_career_cases')`

@@ -254,7 +254,7 @@
       "area": "auth",
       "title": "회원가입",
       "user_visible_behavior": "아이디 중복확인을 통과하고 비밀번호를 두 번 일치시키면 계정이 만들어지고 로그인 화면으로 이동한다.",
-      "status": "passing",
+      "status": "retired",
       "verification": [
         "signup.html 을 연다.",
         "2자 아이디로 중복확인 → 길이 오류가 표시된다.",
@@ -269,7 +269,7 @@
         "가입 후 저장값 확인 — salt 존재, hash 44자(base64 256bit), 평문 'pass1234' 미포함(false)",
         "2026-09-04: 사용자 요청으로 안내문의 'localStorage' 표현을 '임시기억'으로 정정 (career.html/login.html/signup.html/error.html, 4곳). 코드 내부 API 호출·주석은 그대로(실제 브라우저 API 이름이라 바꿀 수 없다)."
       ],
-      "notes": "중복확인 통과 후 아이디를 고치면 확인이 무효화되고 재확인을 요구한다."
+      "notes": "중복확인 통과 후 아이디를 고치면 확인이 무효화되고 재확인을 요구한다. ※ 2026-09-04 폐기(사용자 지시) — 로그인 시스템 전체를 앱에서 완전히 제거했다(signup.html·login.html·error.html·assets/auth.js 삭제, git 이력에 남아 복원 가능). 진로상담이 유일한 기능이고 계정으로 나눌 데이터도 없어 계정·비밀번호 흐름 자체가 불필요한 마찰이었다. 아래 evidence 는 이 기능이 존재하던 시점의 실제 통과 기록이며, 지금 코드에 대한 주장이 아니다."
     },
     {
       "id": "auth-002",
@@ -277,7 +277,7 @@
       "area": "auth",
       "title": "로그인 (상태 유지 · Enter 키 · 실패 처리)",
       "user_visible_behavior": "아이디/비밀번호가 맞으면 career.html 로, 틀리면 error.html 로 이동한다. '로그인 상태 유지'를 켜면 브라우저를 껐다 켜도 세션이 남는다.",
-      "status": "passing",
+      "status": "retired",
       "verification": [
         "틀린 비밀번호로 제출 → error.html 로 이동하고 사유가 표시되며 세션이 생기지 않는다.",
         "맞는 비밀번호 + 상태유지 켬 → career.html 로 이동하고 세션이 localStorage 에 저장된다.",
@@ -292,7 +292,7 @@
         "init.ps1: 'login.html 이 로그인 성공 시 career.html 로 이동' [OK]",
         "2026-09-04: 사용자 요청으로 안내문의 'localStorage' 표현을 '임시기억'으로 정정 (career.html/login.html/signup.html/error.html, 4곳). 코드 내부 API 호출·주석은 그대로(실제 브라우저 API 이름이라 바꿀 수 없다)."
       ],
-      "notes": "아이디가 없을 때와 비밀번호가 틀릴 때 같은 메시지를 반환한다(계정 존재 여부 노출 방지)."
+      "notes": "아이디가 없을 때와 비밀번호가 틀릴 때 같은 메시지를 반환한다(계정 존재 여부 노출 방지). ※ 2026-09-04 폐기(사용자 지시) — 로그인 시스템 전체를 앱에서 완전히 제거했다. auth-001 notes 참고."
     },
     {
       "id": "auth-003",
@@ -300,7 +300,7 @@
       "area": "auth",
       "title": "Google 소셜 로그인 버튼 (모의)",
       "user_visible_behavior": "Google 버튼을 누르면 데모 계정으로 로그인되어 career.html 로 이동한다.",
-      "status": "passing",
+      "status": "retired",
       "verification": [
         "Google 버튼 클릭 → career.html 로 이동한다.",
         "google_demo_user 로 비밀번호 로그인을 시도하면 거부된다."
@@ -310,7 +310,7 @@
         "2026-08-31 검증: 비밀번호 로그인 시도 → '이 아이디는 Google 계정으로 가입되어 있습니다' 로 거부됨",
         "2026-09-02(Session 015) 이동 대상 변경 — home.html 대신 career.html 로 간다. '로그인 방식이 화면에 표시된다' 검증은 그 표시를 갖고 있던 home.html 이 폐기되며 함께 정리했다 — auth-008 참고"
       ],
-      "notes": "⚠ 실제 OAuth 가 아니다. 실제 연동은 Google Cloud 클라이언트 ID 발급 + 서버측 토큰 검증이 필요하다. 화면에도 모의라고 명시했다."
+      "notes": "⚠ 실제 OAuth 가 아니다. 실제 연동은 Google Cloud 클라이언트 ID 발급 + 서버측 토큰 검증이 필요하다. 화면에도 모의라고 명시했다. ※ 2026-09-04 폐기(사용자 지시) — 로그인 시스템 전체를 앱에서 완전히 제거했다. auth-001 notes 참고."
     },
     {
       "id": "auth-004",
@@ -318,7 +318,7 @@
       "area": "auth",
       "title": "비밀번호 찾기 (재설정 모달)",
       "user_visible_behavior": "'비밀번호 찾기'를 누르면 모달이 열리고, 아이디와 새 비밀번호를 입력해 재설정할 수 있다.",
-      "status": "passing",
+      "status": "retired",
       "verification": [
         "비밀번호 찾기 클릭 → 모달이 열린다.",
         "우측 상단 X · 하단 취소 · 바깥 클릭 · ESC 로 각각 닫힌다.",
@@ -329,7 +329,7 @@
         "2026-08-31 코드 검증: 닫기 경로 4종(X/취소/바깥/ESC) 모두 바인딩 확인",
         "resetPassword 가 미등록 아이디·Google 계정·약한 비밀번호를 각각 거부"
       ],
-      "notes": "해시 저장이라 원래 비밀번호는 복구 불가 — 재설정만 제공한다. 실제 서비스라면 본인확인이 선행되어야 한다. 모달은 전역 규칙에 따라 우측 상단 X 버튼을 갖는다."
+      "notes": "해시 저장이라 원래 비밀번호는 복구 불가 — 재설정만 제공한다. 실제 서비스라면 본인확인이 선행되어야 한다. 모달은 전역 규칙에 따라 우측 상단 X 버튼을 갖는다. ※ 2026-09-04 폐기(사용자 지시) — 로그인 시스템 전체를 앱에서 완전히 제거했다. auth-001 notes 참고."
     },
     {
       "id": "auth-005",
@@ -337,7 +337,7 @@
       "area": "auth",
       "title": "로그인 실패 안내 (error.html)",
       "user_visible_behavior": "로그인에 실패하면 error.html 에서 사유를 보여준다. 등록된 계정이 0개면 가입 안내가 추가로 뜬다.",
-      "status": "passing",
+      "status": "retired",
       "verification": [
         "error.html 이 쿼리스트링의 사유를 표시한다.",
         "등록 계정이 0개면 error.html 에 가입 안내가 추가로 뜬다."
@@ -346,7 +346,7 @@
         "2026-08-31 검증: error.html 사유 표시 + 등록 계정 수 1개 표시 확인",
         "2026-09-04: 사용자 요청으로 안내문의 'localStorage' 표현을 '임시기억'으로 정정 (career.html/login.html/signup.html/error.html, 4곳). 코드 내부 API 호출·주석은 그대로(실제 브라우저 API 이름이라 바꿀 수 없다)."
       ],
-      "notes": "실패 사유는 textContent 로만 넣어 HTML 주입 여지를 없앴다. 2026-09-02(Session 015): 원래 이 기능은 성공(home.html)·실패(error.html) 화면을 함께 다뤘다. home.html 이 폐기되면서 그쪽 내용은 auth-008 로 옮기고, 이 기능은 실패 안내만 남겼다."
+      "notes": "실패 사유는 textContent 로만 넣어 HTML 주입 여지를 없앴다. 2026-09-02(Session 015): 원래 이 기능은 성공(home.html)·실패(error.html) 화면을 함께 다뤘다. home.html 이 폐기되면서 그쪽 내용은 auth-008 로 옮기고, 이 기능은 실패 안내만 남겼다. ※ 2026-09-04 폐기(사용자 지시) — 로그인 시스템 전체를 앱에서 완전히 제거했다. auth-001 notes 참고."
     },
     {
       "id": "setup-002",
@@ -414,13 +414,13 @@
       "area": "auth",
       "title": "서버 기반 인증으로 전환",
       "user_visible_behavior": "계정과 세션이 서버에서 관리되어 다른 기기·브라우저에서도 같은 계정으로 로그인할 수 있다.",
-      "status": "not_started",
+      "status": "retired",
       "verification": [
         "다른 브라우저에서 같은 계정으로 로그인된다.",
         "클라이언트 저장소를 지워도 계정이 남아 있다."
       ],
       "evidence": [],
-      "notes": "2026-09-01 사용자 지시로 보류. 현재 데모의 가장 큰 한계. localStorage 는 브라우저별로 격리되고, 접근 제어가 클라이언트에만 있어 보안 경계가 되지 못한다. 실서비스로 갈 경우 1순위."
+      "notes": "2026-09-01 사용자 지시로 보류. 현재 데모의 가장 큰 한계. localStorage 는 브라우저별로 격리되고, 접근 제어가 클라이언트에만 있어 보안 경계가 되지 못한다. ※ 2026-09-04 폐기(사용자 지시) — 로그인 시스템 자체를 앱에서 완전히 제거해 이 과제가 통째로 무의미해졌다. auth-001 notes 참고."
     },
     {
       "id": "auth-007",
@@ -428,13 +428,13 @@
       "area": "auth",
       "title": "실제 Google OAuth 연동",
       "user_visible_behavior": "실제 Google 계정으로 로그인할 수 있다.",
-      "status": "not_started",
+      "status": "retired",
       "verification": [
         "실제 Google 계정 선택 화면이 뜬다.",
         "서버가 ID 토큰을 검증한다."
       ],
       "evidence": [],
-      "notes": "Google Cloud 클라이언트 ID 발급과 서버측 토큰 검증이 필요하다. auth-006(서버 인증) 이후에 진행하는 것이 순서상 맞다."
+      "notes": "Google Cloud 클라이언트 ID 발급과 서버측 토큰 검증이 필요하다. auth-006(서버 인증) 이후에 진행하는 것이 순서상 맞다. ※ 2026-09-04 폐기(사용자 지시) — 로그인 시스템 자체를 앱에서 완전히 제거해 이 과제가 통째로 무의미해졌다. auth-001 notes 참고."
     },
     {
       "id": "paste-001",

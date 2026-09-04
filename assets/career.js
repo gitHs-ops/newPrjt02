@@ -359,11 +359,6 @@
 
     /* ---------------------------------------------------------- 사례 저장소 */
 
-    function currentOwner() {
-        var s = g.Auth && g.Auth.getSession && g.Auth.getSession();
-        return (s && s.id) || '';
-    }
-
     function readAll() {
         try { return JSON.parse(localStorage.getItem(CASES_KEY) || '[]'); }
         catch (e) { return []; }
@@ -371,9 +366,7 @@
     function writeAll(list) { localStorage.setItem(CASES_KEY, JSON.stringify(list)); }
 
     function listCases() {
-        var owner = currentOwner();
-        return readAll().filter(function (c) { return c.owner === owner; })
-                        .sort(function (a, b) { return (b.at || '').localeCompare(a.at || ''); });
+        return readAll().sort(function (a, b) { return (b.at || '').localeCompare(a.at || ''); });
     }
     function getCase(id) {
         var hit = readAll().filter(function (c) { return c.id === id; });
@@ -383,7 +376,6 @@
         var c = {
             id: 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
             label: (label || '').trim() || '이름 없는 사례',
-            owner: currentOwner(),
             at: new Date().toISOString(),
             student: {}, report1: null, extra2: null, report2: null
         };
@@ -619,14 +611,6 @@
         toast._t = setTimeout(function () { el.className = 'toast'; }, 3200);
     }
 
-    /** 로그인 가드 + 공통 헤더. 진로상담 화면은 전부 로그인이 필요하다. */
-    function mountChrome() {
-        if (g.Auth && g.Auth.requireAuth && !g.Auth.requireAuth()) { return false; }
-        var who = document.getElementById('whoami');
-        if (who) { who.textContent = currentOwner() || '(알 수 없음)'; }
-        return true;
-    }
-
     g.Career = {
         /* 프롬프트 */
         loadPrompts: loadPrompts,
@@ -662,7 +646,6 @@
         updateCase: updateCase,
         deleteCase: deleteCase,
         saveReport: saveReport,
-        currentOwner: currentOwner,
 
         /* 완결성 검사 — tools/check-report.py 와 같은 기대 형식 */
         checkReport: checkReport,
@@ -676,7 +659,6 @@
         downloadCombined: downloadCombined,
 
         /* UI */
-        toast: toast,
-        mountChrome: mountChrome
+        toast: toast
     };
 })(window);

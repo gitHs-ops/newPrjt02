@@ -49,14 +49,10 @@ foreach ($f in $harnessFiles) {
     if (Test-Path -LiteralPath $f -PathType Leaf) { Write-Ok $f } else { Write-Fail "$f 없음" }
 }
 
-# 2) 앱 파일 — 로그인 데모 일습
+# 2) 앱 파일 — 랜딩 + 공통 디자인 시스템(로그인은 2026-09-04 완전 제거, 아래 2e 참고)
 $appFiles = @(
     'index.html',
-    'login.html',
-    'signup.html',
-    'error.html',
-    'assets\auth.css',
-    'assets\auth.js'
+    'assets\auth.css'
 )
 foreach ($f in $appFiles) {
     if (Test-Path -LiteralPath $f -PathType Leaf) { Write-Ok $f } else { Write-Fail "$f 없음" }
@@ -90,13 +86,13 @@ if (Test-Path -LiteralPath 'assets\career-prompts.js' -PathType Leaf) {
     Write-Ok "프롬프트 생성물 없음 (원문을 fetch 로 직접 읽는다)"
 }
 
-# 2d) home.html 폐기 확인 — 2026-09-02(Session 015) 로그인 성공이 career.html 로
-#     바로 가도록 바꿨다. 진로상담이 유일한 기능이라 세션 정보만 보여주고 카드 하나로
-#     넘겨주던 중간 화면이 더는 필요 없다. 되살아나면 그 결정이 조용히 무효화된 것이다.
+# 2d) home.html 폐기 확인 — 2026-09-02(Session 015) index.html 의 [시작하기]가 career.html 로
+#     바로 가도록 바꿨다(2026-09-04 로그인 자체를 없앤 뒤로는 더더욱 중간 화면이 필요 없다).
+#     되살아나면 그 결정이 조용히 무효화된 것이다.
 if (Test-Path -LiteralPath 'home.html' -PathType Leaf) {
-    Write-Fail "home.html 이 되살아났다 — 로그인 성공은 이제 career.html 로 바로 간다(Session 015 폐기)"
+    Write-Fail "home.html 이 되살아났다 — [시작하기]는 이제 career.html 로 바로 간다(Session 015 폐기)"
 } else {
-    Write-Ok "home.html 폐기 확인 (로그인 성공 -> career.html 직행)"
+    Write-Ok "home.html 폐기 확인 ([시작하기] -> career.html 직행)"
 }
 
 # 2d-2) career-report2.html 폐기 확인 — 2026-09-03 그 내용을 career-step2.html 로
@@ -117,21 +113,20 @@ if (Test-Path -LiteralPath 'career-report1.html' -PathType Leaf) {
     Write-Ok "career-report1.html 폐기 확인 (1차 결과 붙여넣기는 career-step2.html 에 통합)"
 }
 
-# 2e) login.html 이 실제로 career.html 로 보내는가 — 폐기한 home.html 참조가 남아 있으면
-#     "파일은 지웠는데 코드는 여전히 그리로 가려는" 깨진 상태가 된다.
-if (Test-Path -LiteralPath 'login.html' -PathType Leaf) {
-    $lg = Get-Content -LiteralPath 'login.html' -Raw -Encoding UTF8
-    if ($lg -match "'home\.html'") {
-        Write-Fail "login.html 에 home.html 참조가 남아 있음 — career.html 로 통일할 것"
-    } elseif ($lg -match "'career\.html'") {
-        Write-Ok "login.html 이 로그인 성공 시 career.html 로 이동"
+# 2e) 로그인 시스템 완전 제거 확인(2026-09-04) — 되살아나면 FAIL.
+#     index.html 의 [시작하기]가 career.html 로 바로 간다(계정·세션 없음). auth.js 의
+#     계정·해시·세션 로직 전체가 이 앱에서 더는 안 쓰인다 — auth.css(디자인 시스템)는
+#     career 화면이 계속 쓰므로 남긴다. 되살아나면 이 결정이 조용히 무효화된 것이다.
+foreach ($f in @('login.html', 'signup.html', 'error.html', 'assets\auth.js')) {
+    if (Test-Path -LiteralPath $f -PathType Leaf) {
+        Write-Fail "$f 가 되살아났다 — 로그인 시스템은 2026-09-04 완전히 제거했다(계정·세션 없이 바로 사용)"
     } else {
-        Write-Fail "login.html 의 로그인 성공 이동 대상을 찾지 못함"
+        Write-Ok "$f 폐기 확인 (로그인 없이 career.html 바로 진입)"
     }
 }
 
 # 3) HTML 무결성 — 비어 있지 않고 <html> 을 포함하는가
-foreach ($f in @('index.html', 'login.html', 'signup.html', 'error.html',
+foreach ($f in @('index.html',
                  'career.html', 'career-step1.html', 'career-step2.html')) {
     if (-not (Test-Path -LiteralPath $f -PathType Leaf)) { continue }
     $content = Get-Content -LiteralPath $f -Raw -Encoding UTF8
@@ -142,50 +137,18 @@ foreach ($f in @('index.html', 'login.html', 'signup.html', 'error.html',
     }
 }
 
-# 4) 각 페이지가 공통 자산을 참조하는가 (경로 오타 조기 탐지)
-foreach ($f in @('login.html', 'signup.html', 'error.html')) {
-    if (-not (Test-Path -LiteralPath $f -PathType Leaf)) { continue }
-    $content = Get-Content -LiteralPath $f -Raw -Encoding UTF8
-    $hasCss = $content -match 'assets/auth\.css'
-    $hasJs  = $content -match 'assets/auth\.js'
-    if ($hasCss -and $hasJs) {
-        Write-Ok "$f 가 auth.css / auth.js 를 참조"
-    } else {
-        Write-Fail "$f 의 공통 자산 참조 누락 (css=$hasCss js=$hasJs)"
-    }
-}
-
-# 5) auth.js 의 공개 API 가 살아 있는가
-if (Test-Path -LiteralPath 'assets\auth.js' -PathType Leaf) {
-    $js = Get-Content -LiteralPath 'assets\auth.js' -Raw -Encoding UTF8
-    $needed = @('signup', 'login', 'googleLoginDemo', 'resetPassword',
-                'getSession', 'clearSession', 'requireAuth', 'isIdTaken')
-    $missing = @()
-    foreach ($fn in $needed) {
-        if ($js -notmatch [regex]::Escape($fn)) { $missing += $fn }
-    }
-    if ($missing.Count -eq 0) {
-        Write-Ok "auth.js 공개 API $($needed.Count)종 확인"
-    } else {
-        Write-Fail "auth.js 에서 누락된 API: $($missing -join ', ')"
-    }
-
-    # 비밀번호를 평문으로 다루지 않는지 최소 확인
-    if ($js -match 'PBKDF2') {
-        Write-Ok "비밀번호 해싱(PBKDF2) 경로 존재"
-    } else {
-        Write-Fail "auth.js 에 PBKDF2 해싱이 보이지 않음 — 평문 저장 여부 확인 필요"
-    }
-}
-
-# 5b) 진로상담 화면이 공통 자산을 참조하는가
+# 5b) 진로상담 화면이 공통 자산을 참조하는가 (auth.css 는 디자인 시스템이라 계속 쓴다 —
+#     auth.js 는 로그인 제거로 더는 안 쓰므로 여기서 요구하지 않는다)
 foreach ($f in @('career.html', 'career-step1.html', 'career-step2.html')) {
     if (-not (Test-Path -LiteralPath $f -PathType Leaf)) { continue }
     $c = Get-Content -LiteralPath $f -Raw -Encoding UTF8
-    if (($c -match 'assets/career\.css') -and ($c -match 'assets/career\.js') -and ($c -match 'assets/auth\.js')) {
-        Write-Ok "$f 가 career.css / career.js / auth.js 를 참조"
+    if (($c -match 'assets/career\.css') -and ($c -match 'assets/career\.js') -and ($c -match 'assets/auth\.css')) {
+        Write-Ok "$f 가 career.css / career.js / auth.css 를 참조"
     } else {
         Write-Fail "$f 의 공통 자산 참조 누락"
+    }
+    if ($c -match 'assets/auth\.js') {
+        Write-Fail "$f 가 auth.js 를 참조한다 — 로그인 제거(2026-09-04) 이후엔 안 써야 한다"
     }
 }
 
@@ -194,10 +157,10 @@ if (Test-Path -LiteralPath 'assets\career.js' -PathType Leaf) {
     $cjs = Get-Content -LiteralPath 'assets\career.js' -Raw -Encoding UTF8
     $needed = @('loadPrompts', 'buildPrompt1', 'buildPrompt2', 'copyText', 'saveReport',
                 'mdToHtml', 'listCases', 'createCase', 'updateCase', 'deleteCase',
-                'downloadMd', 'downloadCombined', 'entryYearFor', 'mountChrome',
+                'downloadMd', 'downloadCombined', 'entryYearFor',
                 'FIELDS_2_EXP', 'FIELDS_2_SCHOOL', 'checkReport', 'detectKind',
                 'bindQuickPick', 'SAMPLE_1', 'SAMPLE_2', 'QUICK_1', 'QUICK_2_EXP',
-                'AI_SERVICES', 'getAiService', 'setAiService')
+                'AI_SERVICES', 'getAiService', 'setAiService', 'openAiPopup')
     $missing = @()
     foreach ($fn in $needed) { if ($cjs -notmatch [regex]::Escape($fn)) { $missing += $fn } }
     if ($missing.Count -eq 0) {
@@ -558,10 +521,8 @@ Write-Head "검증 통과"
 # ---------------------------------------------------------------- 기동
 Write-Head "Startup command"
 Write-Host "    python -m http.server $Port" -ForegroundColor Yellow
-Write-Host "    http://localhost:$Port/           첫 화면" -ForegroundColor DarkGray
-Write-Host "    http://localhost:$Port/login.html 로그인" -ForegroundColor DarkGray
-Write-Host "    http://localhost:$Port/signup.html 회원가입" -ForegroundColor DarkGray
-Write-Host "    http://localhost:$Port/career.html 진로상담 (로그인 필요)" -ForegroundColor DarkGray
+Write-Host "    http://localhost:$Port/            첫 화면" -ForegroundColor DarkGray
+Write-Host "    http://localhost:$Port/career.html  진로상담 (로그인 없음, 바로 진입)" -ForegroundColor DarkGray
 
 if (-not $Start) {
     Write-Host ""
@@ -570,7 +531,7 @@ if (-not $Start) {
 }
 
 if ($OpenBrowser) {
-    Start-Process "http://localhost:$Port/login.html"
+    Start-Process "http://localhost:$Port/"
 }
 
 Write-Head "Starting the app  (Ctrl+C 로 중지)"

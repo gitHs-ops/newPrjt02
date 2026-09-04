@@ -2,9 +2,19 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-빌드 단계가 없는 **정적 HTML 앱 두 벌**(로그인 데모 · 진로상담 분석)이며,
+빌드 단계가 없는 **정적 HTML 앱**(진로상담 분석, 로그인 없음)이며,
 장시간 에이전트 작업을 전제로 한 **하네스**(`init.ps1` + `feature_list.json` +
 `claude-progress.md`)가 얹혀 있다. 속도보다 **재개 가능성과 실증**이 우선이다.
+
+## ⚠ 로그인 시스템 완전 제거 (2026-09-04, 사용자 지시)
+
+**계정·로그인 개념 자체를 앱에서 지웠다.** `index.html` 의 [시작하기]가 계정·세션
+없이 바로 `career.html` 로 간다. `login.html`·`signup.html`·`error.html`·
+`assets/auth.js` 를 전부 지웠다(`git rm`, 이력에 남아 복원 가능). `assets/auth.css`
+는 남았다 — 로그인 전용이 아니라 `.btn`/`.field`/`.modal` 등 career 화면도 쓰는
+공통 디자인 시스템이기 때문이다. `career.js` 의 사례는 더 이상 계정별로 나뉘지
+않는다(`owner` 필드·`currentOwner()` 제거) — 이 브라우저에 저장된 사례를 전부
+같이 본다. `auth-001`~`007` 은 `retired`(evidence 보존, `auth-009` 참고).
 
 ## ⚠ 분석 엔진 방향 전환 — 완료 (2026-09-02 착수, 2026-09-03 확정)
 
@@ -65,10 +75,12 @@ start http://localhost:8941/tools/obsidian-check.html   # 옵시디언 연결 5�
 
 ### 정적 앱 (빌드 없음, 서버 없음)
 
-로그인 데모 + 진로상담(복사·붙여넣기 방식) 두 벌이다.
+진로상담(복사·붙여넣기 방식) 하나다. 로그인은 2026-09-04 완전히 제거했다(위 절 참고).
 
-- `assets/auth.js` → `window.Auth` — PBKDF2-SHA256(10만회)+솔트 해싱, `np_users`/`np_session`,
-  `requireAuth()` 가드. **Web Crypto 를 쓰므로 `file://` 로 열면 동작하지 않는다.**
+- `assets/auth.css` — 공통 디자인 시스템(라이트 글래스모피즘). 이름은 인증 화면 시절
+  그대로지만 지금은 career 화면들도 함께 쓰는 base 스타일시트다(`.btn`/`.field`/
+  `.modal` 등). 로그인 전용이던 `.banner`/`.checkbox`(필/토글)/`.result`/`.demo-note`
+  류는 더는 안 쓰지만 남겨 뒀다(제거 안 함, 위험 대비 낮은 우선순위).
 - `assets/career.js` → `window.Career` — 2026-09-02 **복사·붙여넣기 방식으로 새로 작성**
   (이전 72KB 프록시 자동 호출 버전은 git 이력에만 있다). AI 를 직접 부르지 않는다 —
   프롬프트를 **조립**하고, 사용자가 복사해 원하는 AI 화면에 붙여넣은 뒤 받은 md 를
@@ -80,9 +92,9 @@ start http://localhost:8941/tools/obsidian-check.html   # 옵시디언 연결 5�
   `tools/build-prompts.py` 로 미리 생성하지 않는다(newPrjt01 은 생성 방식을 쓰지만
   이 저장소는 그 빌드 단계 자체를 없앴다)
 
-흐름: `index → login → career.html`(진입) → `career-step1 → career-report1(붙여넣기)
-→ career-step2 → career-report2(붙여넣기)`. `home.html` 은 2026-09-02 완전 폐기했다
-(로그인 성공은 `career.html` 로 바로 간다) — 되살아나면 `init.ps1` 이 잡는다.
+흐름: `index → career.html`(진입, 로그인 없음) → `career-step1 → career-step2`(1차·2차
+붙여넣기가 모두 이 안에 있다, 2026-09-03/04 병합). `home.html` 은 2026-09-02 완전
+폐기했다(`career.html` 로 바로 간다) — 되살아나면 `init.ps1` 이 잡는다.
 
 ### AI 프록시 — 이 저장소에서 완전히 제거됨 (2026-09-03, `paste-006`)
 

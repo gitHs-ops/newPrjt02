@@ -465,25 +465,48 @@
         /* 붙여넣은 보고서가 끝까지 왔는지 본다.
            자동 호출 시절엔 프록시의 이어쓰기가 잘림을 막았다. 지금은 사람이 스크롤 중간에서
            복사하거나 전체 선택에 실패해 같은 결과가 난다 — 그래서 이 검사가 더 중요하다.
-           ⚠ 2026-09-04: 여기서 문제(problems)가 하나라도 있으면 저장 버튼을 비활성화한다
-           (pasteInfo/pasteInfo1) — 잘린 채로 저장해 버리는 사고를 막기 위해서다. */
+           ⚠ 2026-09-04: 문제(problems)가 있으면 저장 버튼을 비활성화한다 — 잘린 채로
+           저장해 버리는 사고를 막기 위해서다. 다만 AI 응답 특성상 검사가 오탐(예: 소제목
+           표현이 조금 달라 못 찾음)일 수도 있어, 항목별로 "무시" 체크를 하면 그 항목만
+           통과시킨다. 무시 여부는 문제 문구를 키로 기억한다(같은 문제가 다시 뜨면 유지). */
+        var ignoredProblems = {};
+
         function renderCheck(text) {
             var box = document.getElementById('check');
             if (!text.trim()) { box.hidden = true; return null; }
 
             var r = Career.checkReport(text, ROUND);
             box.hidden = false;
-            box.className = 'check ' + (r.problems.length ? 'warn' : 'ok');
+            var unignored = r.problems.filter(function (m) { return !ignoredProblems[m]; });
+            box.className = 'check ' + (unignored.length ? 'warn' : 'ok');
 
             var head = document.createElement('div');
             head.className = 'head';
             head.textContent = r.problems.length
-                ? ('완결성 검사 — 확인할 점 ' + r.problems.length + '건')
+                ? ('완결성 검사 — 확인할 점 ' + r.problems.length + '건' +
+                   (unignored.length < r.problems.length ? ' (무시 ' + (r.problems.length - unignored.length) + '건)' : ''))
                 : '완결성 검사 — 이상 없음';
 
             var ul = document.createElement('ul');
             r.problems.forEach(function (m) {
-                var li = document.createElement('li'); li.textContent = m; ul.appendChild(li);
+                var li = document.createElement('li');
+                var label = document.createElement('label');
+                label.className = 'ignore';
+                var cb = document.createElement('input');
+                cb.type = 'checkbox';
+                cb.checked = !!ignoredProblems[m];
+                cb.addEventListener('change', function () {
+                    if (cb.checked) { ignoredProblems[m] = true; } else { delete ignoredProblems[m]; }
+                    pasteInfo();
+                });
+                var t = document.createElement('span'); t.textContent = '무시';
+                label.appendChild(cb); label.appendChild(t);
+                li.appendChild(label);
+                var msg = document.createElement('span');
+                msg.textContent = m;
+                if (ignoredProblems[m]) { msg.className = 'ignored'; }
+                li.appendChild(msg);
+                ul.appendChild(li);
             });
             r.passes.forEach(function (m) {
                 var li = document.createElement('li'); li.className = 'pass';
@@ -493,6 +516,7 @@
             box.innerHTML = '';
             box.appendChild(head);
             box.appendChild(ul);
+            r.unignoredCount = unignored.length;
             return r;
         }
 
@@ -500,10 +524,10 @@
             var n = pasteTa.value.trim().length;
             document.getElementById('pasteInfo').textContent =
                 n ? (n.toLocaleString() + '자 입력됨') : '아직 입력이 없습니다.';
-            /* 완결성 검사(STEP 11·면책 문장 등)를 통과해야 저장 버튼이 열린다 —
-               잘린 채로 저장해 버리는 사고를 막는다. */
+            /* 완결성 검사(STEP 11·면책 문장 등)를 통과해야(=무시하지 않은 문제가 없어야)
+               저장 버튼이 열린다 — 잘린 채로 저장해 버리는 사고를 막는다. */
             var chk = renderCheck(pasteTa.value);
-            document.getElementById('saveBtn').disabled = !n || !!(chk && chk.problems.length);
+            document.getElementById('saveBtn').disabled = !n || !!(chk && chk.unignoredCount);
         }
         pasteTa.addEventListener('input', pasteInfo);
 
@@ -624,23 +648,45 @@
             document.getElementById('report1').innerHTML = Career.mdToHtml(rep.md);
         }
 
+        /* 항목별 "무시" — renderCheck() 쪽과 같은 이유(2026-09-04). */
+        var ignoredProblems1 = {};
+
         function renderCheck1(text) {
             var box = document.getElementById('check1');
             if (!text.trim()) { box.hidden = true; return null; }
 
             var r = Career.checkReport(text, ROUND1);
             box.hidden = false;
-            box.className = 'check ' + (r.problems.length ? 'warn' : 'ok');
+            var unignored = r.problems.filter(function (m) { return !ignoredProblems1[m]; });
+            box.className = 'check ' + (unignored.length ? 'warn' : 'ok');
 
             var head = document.createElement('div');
             head.className = 'head';
             head.textContent = r.problems.length
-                ? ('완결성 검사 — 확인할 점 ' + r.problems.length + '건')
+                ? ('완결성 검사 — 확인할 점 ' + r.problems.length + '건' +
+                   (unignored.length < r.problems.length ? ' (무시 ' + (r.problems.length - unignored.length) + '건)' : ''))
                 : '완결성 검사 — 이상 없음';
 
             var ul = document.createElement('ul');
             r.problems.forEach(function (m) {
-                var li = document.createElement('li'); li.textContent = m; ul.appendChild(li);
+                var li = document.createElement('li');
+                var label = document.createElement('label');
+                label.className = 'ignore';
+                var cb = document.createElement('input');
+                cb.type = 'checkbox';
+                cb.checked = !!ignoredProblems1[m];
+                cb.addEventListener('change', function () {
+                    if (cb.checked) { ignoredProblems1[m] = true; } else { delete ignoredProblems1[m]; }
+                    pasteInfo1();
+                });
+                var t = document.createElement('span'); t.textContent = '무시';
+                label.appendChild(cb); label.appendChild(t);
+                li.appendChild(label);
+                var msg = document.createElement('span');
+                msg.textContent = m;
+                if (ignoredProblems1[m]) { msg.className = 'ignored'; }
+                li.appendChild(msg);
+                ul.appendChild(li);
             });
             r.passes.forEach(function (m) {
                 var li = document.createElement('li'); li.className = 'pass';
@@ -650,6 +696,7 @@
             box.innerHTML = '';
             box.appendChild(head);
             box.appendChild(ul);
+            r.unignoredCount = unignored.length;
             return r;
         }
 
@@ -657,9 +704,10 @@
             var n = pasteTa1.value.trim().length;
             document.getElementById('pasteInfo1').textContent =
                 n ? (n.toLocaleString() + '자 입력됨') : '아직 입력이 없습니다.';
-            /* 완결성 검사를 통과해야 저장 버튼이 열린다 — 잘린 채로 저장해 버리는 사고를 막는다. */
+            /* 완결성 검사를 통과해야(=무시하지 않은 문제가 없어야) 저장 버튼이 열린다 —
+               잘린 채로 저장해 버리는 사고를 막는다. */
             var chk = renderCheck1(pasteTa1.value);
-            document.getElementById('saveBtn1').disabled = !n || !!(chk && chk.problems.length);
+            document.getElementById('saveBtn1').disabled = !n || !!(chk && chk.unignoredCount);
         }
         pasteTa1.addEventListener('input', pasteInfo1);
 

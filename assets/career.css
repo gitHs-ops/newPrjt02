@@ -280,7 +280,7 @@ option { background: #fff; color: var(--text-primary); }
 .report li { margin: 4px 0; }
 .report hr {
     border: 0;
-    border-top: 1px solid var(--field-border);
+    border-top: 2px solid rgba(100, 116, 139, 0.55);
     margin: 20px 0;
 }
 .report code {

@@ -32,7 +32,10 @@
     </div>
 
     <div class="panel">
-        <h2>1차 AI 분석결과 붙여넣기</h2>
+        <div class="panel-head">
+            <h2>1차 AI 분석결과 붙여넣기</h2>
+            <button type="button" class="btn-inline" id="pasteClipBtn1">붙여넣기</button>
+        </div>
         <p class="sub">
             아래에 붙여넣으십시오. 마지막 면책 문장까지 들어와야 온전한 보고서입니다.
         </p>
@@ -42,7 +45,7 @@
             <div class="check" id="check1" hidden></div>
         </div>
         <div class="btn-row">
-            <button type="button" class="btn btn-primary grow" id="saveBtn1" disabled>저장하기</button>
+            <button type="button" class="btn btn-primary grow" id="saveBtn1" disabled>1차 분석 결과 저장하기</button>
         </div>
     </div>
 
@@ -118,7 +121,10 @@
     </div>
 
     <div class="panel">
-        <h2>2차결과 붙여넣기</h2>
+        <div class="panel-head">
+            <h2>2차결과 붙여넣기</h2>
+            <button type="button" class="btn-inline" id="pasteClipBtn">붙여넣기</button>
+        </div>
         <p class="sub">
             AI 가 만든 2차 분석 결과를 아래에 붙여넣기하세요.
             STEP 11 최종 브리프와 마지막 면책 문장까지 들어와야 온전한 보고서입니다.
@@ -455,6 +461,15 @@
         }
         pasteTa.addEventListener('input', pasteInfo);
 
+        document.getElementById('pasteClipBtn').addEventListener('click', function () {
+            Career.pasteFromClipboard().then(function (text) {
+                if (!text) { Career.toast('클립보드가 비어 있습니다.', 'error'); return; }
+                pasteTa.value = text;
+                pasteInfo();
+                Career.toast(text.length.toLocaleString() + '자를 붙여넣었습니다.', 'ok');
+            }).catch(function (e) { Career.toast(e.message, 'error'); });
+        });
+
         document.getElementById('saveBtn').addEventListener('click', function () {
             try {
                 var chk = Career.checkReport(pasteTa.value, ROUND);
@@ -551,6 +566,15 @@
             document.getElementById('saveBtn1').disabled = !n || !!(chk && chk.problems.length);
         }
         pasteTa1.addEventListener('input', pasteInfo1);
+
+        document.getElementById('pasteClipBtn1').addEventListener('click', function () {
+            Career.pasteFromClipboard().then(function (text) {
+                if (!text) { Career.toast('클립보드가 비어 있습니다.', 'error'); return; }
+                pasteTa1.value = text;
+                pasteInfo1();
+                Career.toast(text.length.toLocaleString() + '자를 붙여넣었습니다.', 'ok');
+            }).catch(function (e) { Career.toast(e.message, 'error'); });
+        });
 
         document.getElementById('saveBtn1').addEventListener('click', function () {
             try {

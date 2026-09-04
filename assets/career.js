@@ -357,6 +357,26 @@
         });
     }
 
+    /**
+     * 클립보드에서 텍스트를 읽어 온다. 붙여넣기 칸 옆의 [붙여넣기] 버튼용이다.
+     *
+     * navigator.clipboard.readText() 는 쓰기와 달리 execCommand('paste') 로
+     * 떨어질 방법이 없다(브라우저가 보안상 막아 둔다) — 실패하면 손으로
+     * Ctrl+V 하라고 안내한다. 보안 컨텍스트가 아니거나 지원하지 않으면
+     * 시도하지 않고 바로 그 안내로 넘어간다.
+     */
+    function pasteFromClipboard() {
+        if (g.navigator && g.navigator.clipboard && g.navigator.clipboard.readText && g.isSecureContext) {
+            return g.navigator.clipboard.readText().catch(function (e) {
+                throw new Error('클립보드를 읽지 못했습니다' +
+                    (e && e.message ? ' (' + e.message + ')' : '') +
+                    ' — 브라우저가 권한을 막았을 수 있습니다. 칸을 클릭하고 Ctrl+V 로 붙여넣으십시오.');
+            });
+        }
+        return Promise.reject(new Error(
+            '이 브라우저/환경에서는 버튼으로 붙여넣기를 지원하지 않습니다. 칸을 클릭하고 Ctrl+V 로 붙여넣으십시오.'));
+    }
+
     /* ---------------------------------------------------------- 사례 저장소 */
 
     function readAll() {
@@ -632,6 +652,7 @@
 
         /* 복사 */
         copyText: copyText,
+        pasteFromClipboard: pasteFromClipboard,
 
         /* AI 화면 선택 */
         AI_SERVICES: AI_SERVICES,

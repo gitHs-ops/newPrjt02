@@ -103,7 +103,8 @@
         <h2>2차 프롬프트</h2>
         <p class="sub">2차 프롬프트(1차 결과 + 위 입력)를 생성합니다.</p>
         <div class="btn-row">
-            <button type="button" class="btn btn-primary grow" id="copyBtn">생성하고 복사하기</button>
+            <button type="button" class="btn btn-primary grow" id="copyBtn" disabled
+                    title="1차 결과의 완결성 검사를 통과해야 활성화됩니다">생성하고 복사하기</button>
             <a class="btn btn-ghost disabled" id="aiOpenBtn" href="https://claude.ai/new" rel="noopener noreferrer"
                aria-disabled="true" title="먼저 [생성하고 복사하기]를 눌러야 활성화됩니다">AI 화면 열기(꼭 복사해오세요)</a>
             <select id="aiService" class="quick" style="max-width:150px;margin-bottom:0" title="열 AI 서비스 선택"></select>
@@ -168,9 +169,27 @@
     var r1 = kase.report1;
     function updateR1Info() {
         r1 = kase.report1;
-        document.getElementById('r1info').textContent = r1
-            ? ('1차 결과 ' + r1.chars.toLocaleString() + '자 (' + new Date(r1.at).toLocaleString('ko-KR') + ' 저장)')
-            : '⚠ 1차 결과가 없습니다. 위에서 먼저 1차 결과를 붙여넣어 저장하세요.';
+        var infoEl = document.getElementById('r1info');
+        var copyBtn = document.getElementById('copyBtn');
+
+        /* 1차 결과가 있는 것만으론 부족하다 — 완결성 검사를 통과해야 2차로 넘어간다.
+           저장 버튼(saveBtn1)이 이미 통과 못 하면 저장을 막지만, 그 이전에 저장된
+           데이터가 남아 있을 수 있어 여기서 다시 검사한다. */
+        var chk = r1 ? Career.checkReport(r1.md, 1) : null;
+        var passes = !!(chk && chk.problems.length === 0);
+
+        if (!r1) {
+            infoEl.textContent = '⚠ 1차 결과가 없습니다. 위에서 먼저 1차 결과를 붙여넣어 저장하세요.';
+        } else if (!passes) {
+            infoEl.textContent = '1차 결과 ' + r1.chars.toLocaleString() + '자 (' +
+                new Date(r1.at).toLocaleString('ko-KR') + ' 저장) · ⚠ 완결성 검사 미통과 — ' + chk.problems[0];
+        } else {
+            infoEl.textContent = '1차 결과 ' + r1.chars.toLocaleString() + '자 (' +
+                new Date(r1.at).toLocaleString('ko-KR') + ' 저장)';
+        }
+
+        copyBtn.disabled = !passes;
+        copyBtn.title = passes ? '' : '1차 결과의 완결성 검사를 통과해야 활성화됩니다';
     }
     updateR1Info();
 

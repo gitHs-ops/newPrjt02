@@ -19,11 +19,11 @@
     <div class="doc-head">
         <span class="logo">🧭</span>
         <h1>2차 추가정보입력</h1>
+        <a class="btn btn-ghost" href="career.html" style="width:auto;flex:0 0 auto;padding-left:20px;padding-right:20px">처음으로</a>
     </div>
 
     <div class="btn-row end" style="margin-top:0;margin-bottom:16px">
         <a class="btn btn-ghost backLink" href="#">← 1차 입력으로</a>
-        <a class="btn btn-ghost" href="career.html">처음으로</a>
     </div>
 
     <div class="steps" style="grid-template-columns:repeat(2,1fr)">
@@ -60,17 +60,19 @@
     </div>
 
     <div class="panel">
-        <h2 id="caseTitle">사례</h2>
+        <div class="panel-head">
+            <h2 id="caseTitle">사례</h2>
+            <div class="btn-row" style="margin:0">
+                <button type="button" class="btn btn-ghost" id="sampleBtn"
+                        title="테스트용 예시로 2차 입력 채우기 (1차 결과는 그대로 둡니다)">예시 채우기</button>
+                <button type="button" class="btn btn-ghost" id="clearBtn">예시 지우기</button>
+            </div>
+        </div>
         <p class="sub">
             2차는 <strong>1차 결과를 그대로 물고 갑니다.</strong> 아래 세 묶음은 모두 선택 사항이며,
             없으면 프롬프트에 <code>추가 정보 없음</code> · <code>학교자료 없음</code> 으로 전달됩니다.
         </p>
         <p class="size" id="r1info">—</p>
-        <div class="btn-row end">
-            <button type="button" class="btn btn-ghost" id="sampleBtn"
-                    title="테스트용 예시로 2차 입력 채우기 (1차 결과는 그대로 둡니다)">예시 채우기</button>
-            <button type="button" class="btn btn-ghost" id="clearBtn">예시 지우기</button>
-        </div>
     </div>
 
     <div class="panel">

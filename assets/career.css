@@ -163,6 +163,7 @@ option { background: #fff; color: var(--text-primary); }
     margin-top: 6px;
     line-height: 1.6;
 }
+.field .note.warn { color: var(--warning); font-weight: 700; }
 
 /* ------------------------------------------------------------------ 사례 */
 

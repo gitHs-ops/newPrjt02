@@ -1,9 +1,36 @@
 # Session Handoff
 
-> 최종 갱신: 2026-09-03 (Session 016 — 프록시 경로 완전 제거, paste-006 확정)
+> 최종 갱신: 2026-09-04 (Session 033 — 1차 저장 직후 자동 펼침 →
+> `[보고서결과 보기]` 클릭으로 전환, `paste-002`). 아래 본문은 대부분
+> Session 016 시점 그대로다 — 그 뒤 세션(017~033) 상세는 `claude-progress.md` 참고.
 > ⚠ 이 저장소는 2026-09-02 에 `newPrjt01` 에서 분리됐다. 커밋 이력은 이어받지 않았다 —
 > 이전 이력은 `gitHs-ops/newPrjt01` 과 로컬 `C:\myPrjt01\newPrjt01` 에 있다.
 > 상세 이력은 `claude-progress.md`, 기능 상태는 `feature_list.json` 참고.
+
+## Session 033 요약 (2026-09-04)
+
+사용자 요청으로 `career-step2.html` 의 "저장된 1차 결과" 패널을 바꿨다 —
+저장 버튼을 누르면 보고서 본문이 바로 펼쳐지던 것을, `[보고서결과 보기]`
+버튼을 눌러야 펼쳐지도록(다시 누르면 접힘) 고쳤다. 2차("저장된 2차 결과")
+는 요청 범위 밖이라 그대로 즉시 렌더된다(사용자가 이 범위 판단을
+확인·승인함). 상세 근거·검증 로그는 `claude-progress.md` Session 033,
+evidence 는 `feature_list.json` 의 `paste-002` 참고.
+
+처음엔 리모트 Linux 컨테이너라 `pwsh` 가 없어 `.\init.ps1` 을 못 돌리고
+대신 Python Playwright + headless Chromium 으로 실제 화면(저장 직후
+접힘·버튼 클릭 시 펼침/재접힘·새로고침 후 기본 접힘·`md 저장`/`결과 복사`
+버튼 정상 동작)만 자동 조작 검증했었다 — 하지만 사용자가 바로
+"Windows 에서 init.ps1 확인해 달라"고 요청해서, **이 컨테이너에
+PowerShell 7.6.5(pwsh) 를 Microsoft 공식 apt 저장소로 직접 설치하고
+`init.ps1` 을 실제로 실행했다: 63개 항목 전부 `[OK]` · `[FAIL]` 0건 ·
+`exit 0`.** `init.ps1` 에 OS 분기가 없어(grep 확인) 조용히 건너뛴 검사도
+없다. ⚠ 다만 Windows PowerShell 5.1 자체는 아니라서(Linux 위 PS7.6),
+과거 지뢰였던 PS5.1 고유 cp949 인코딩 사고까지 재현/반증하진 못한다
+(BOM 자가검사는 통과). 개수가 과거 "82개"에서 "63개"로 줄어든 건
+`career-report1.html`/`career-report2.html`/`login.html` 류가 이전
+세션들에서 이미 폐기되며 관련 개별 검사가 자연히 줄어든 결과로 보이며
+`init.ps1` 에 하드코드된 총계 비교는 없다(회귀 아님). 상세는
+`claude-progress.md` Session 033 "후속" 절.
 
 ## 지금 상태 — 복사·붙여넣기 방식, 전 구간 동작, 프록시 완전 제거
 
@@ -94,7 +121,11 @@ Session 012.
 2. **[AI 화면 열기]가 실제 배포본에서 팝업 창으로 뜨는지 사용자 확인 필요**
    (Session 022 — 이 세션의 검증 도구가 `window.open` 이 만드는 새 창을
    추적하지 못해 코드 실행만 확인했다)
-3. `auth-006`/`auth-007`(서버 인증·실제 OAuth)은 로그인 자체가 없어져
+3. (선택) Session 033 에서 `init.ps1` 은 리모트 컨테이너에 설치한
+   PowerShell 7.6(Linux) 로 63개 항목 전부 `[OK]` 를 확인했다 — 완전히
+   같은 보증을 원하면 실제 Windows PowerShell 5.1 에서 한 번 더 돌려도
+   좋지만, 필수는 아니다
+4. `auth-006`/`auth-007`(서버 인증·실제 OAuth)은 로그인 자체가 없어져
    `retired` 로 닫혔다 — 더 이상 과제가 아니다
 
 ## Commands

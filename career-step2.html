@@ -52,10 +52,11 @@
         <p class="sub" id="savedNote1"></p>
         <p class="sub" id="savedMeta1"></p>
         <div class="btn-row" style="margin-top:0;margin-bottom:14px">
+            <button type="button" class="btn btn-ghost" id="viewReportBtn1">보고서결과 보기</button>
             <button type="button" class="btn btn-ghost" id="mdBtn1">md 파일로 저장</button>
             <button type="button" class="btn btn-ghost" id="copyBtn1">결과 복사</button>
         </div>
-        <div class="report" id="report1"></div>
+        <div class="report" id="report1" hidden></div>
     </div>
 
     <div id="step2Content" hidden>
@@ -682,8 +683,8 @@
             if (!rep) { panel.hidden = true; return; }
             panel.hidden = false;
             document.getElementById('savedNote1').textContent = freshSave1
-                ? '방금 이 세션에서 저장한 최신 내용입니다.'
-                : '위 칸에 새로 붙여넣고 저장해야 아래 내용이 바뀝니다 — 지금 보이는 건 이미 저장돼 있던 결과입니다.';
+                ? '방금 이 세션에서 저장한 최신 내용입니다. [보고서결과 보기] 를 누르면 볼 수 있습니다.'
+                : '위 칸에 새로 붙여넣고 저장해야 내용이 바뀝니다 — [보고서결과 보기] 를 누르면 이미 저장돼 있던 결과가 보입니다.';
             document.getElementById('savedMeta1').textContent =
                 new Date(rep.at).toLocaleString('ko-KR') + ' 저장 · ' +
                 rep.chars.toLocaleString() + '자 · 붙여넣기';
@@ -785,6 +786,16 @@
                 Career.toast(e.message, 'error');
                 pasteTa1.focus();
             }
+        });
+
+        /* 저장하자마자 전체 내용이 바로 펼쳐지던 것을 개선(2026-09-04, 사용자 요청) —
+           [보고서결과 보기] 를 눌러야 본문이 보인다. renderSaved1() 은 hidden 상태를
+           건드리지 않고 내용만 갱신하므로, 열어 둔 채로 다시 저장하면 갱신된 내용이
+           그대로 보이고 닫아 둔 채로 저장하면 계속 닫혀 있다. */
+        document.getElementById('viewReportBtn1').addEventListener('click', function () {
+            var box = document.getElementById('report1');
+            box.hidden = !box.hidden;
+            this.textContent = box.hidden ? '보고서결과 보기' : '보고서결과 숨기기';
         });
 
         document.getElementById('mdBtn1').addEventListener('click', function () {

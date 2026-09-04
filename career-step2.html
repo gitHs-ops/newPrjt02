@@ -374,7 +374,8 @@
         /* 붙여넣은 보고서가 끝까지 왔는지 본다.
            자동 호출 시절엔 프록시의 이어쓰기가 잘림을 막았다. 지금은 사람이 스크롤 중간에서
            복사하거나 전체 선택에 실패해 같은 결과가 난다 — 그래서 이 검사가 더 중요하다.
-           ⚠ 경고가 떠도 저장은 막지 않는다. 판단은 사용자 몫이다. */
+           ⚠ 2026-09-04: 여기서 문제(problems)가 하나라도 있으면 저장 버튼을 비활성화한다
+           (pasteInfo/pasteInfo1) — 잘린 채로 저장해 버리는 사고를 막기 위해서다. */
         function renderCheck(text) {
             var box = document.getElementById('check');
             if (!text.trim()) { box.hidden = true; return null; }
@@ -408,8 +409,10 @@
             var n = pasteTa.value.trim().length;
             document.getElementById('pasteInfo').textContent =
                 n ? (n.toLocaleString() + '자 입력됨') : '아직 입력이 없습니다.';
-            document.getElementById('saveBtn').disabled = !n;
-            renderCheck(pasteTa.value);
+            /* 완결성 검사(STEP 11·면책 문장 등)를 통과해야 저장 버튼이 열린다 —
+               잘린 채로 저장해 버리는 사고를 막는다. */
+            var chk = renderCheck(pasteTa.value);
+            document.getElementById('saveBtn').disabled = !n || !!(chk && chk.problems.length);
         }
         pasteTa.addEventListener('input', pasteInfo);
 
@@ -504,8 +507,9 @@
             var n = pasteTa1.value.trim().length;
             document.getElementById('pasteInfo1').textContent =
                 n ? (n.toLocaleString() + '자 입력됨') : '아직 입력이 없습니다.';
-            document.getElementById('saveBtn1').disabled = !n;
-            renderCheck1(pasteTa1.value);
+            /* 완결성 검사를 통과해야 저장 버튼이 열린다 — 잘린 채로 저장해 버리는 사고를 막는다. */
+            var chk = renderCheck1(pasteTa1.value);
+            document.getElementById('saveBtn1').disabled = !n || !!(chk && chk.problems.length);
         }
         pasteTa1.addEventListener('input', pasteInfo1);
 

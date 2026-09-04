@@ -1410,3 +1410,42 @@ Session 014 에서 남겨 뒀던 판단 사항 — "로그인 성공 리다이�
 `passing`. 이제 `career-step1.html` → `career-step2.html` 두 화면만으로 전체
 흐름(1차 입력·프롬프트, 1차 결과 붙여넣기, 2차 입력·프롬프트, 2차 결과 붙여넣기)이
 끝난다 — `career-report1.html`·`career-report2.html` 둘 다 폐기됐다.
+
+### Session 020 — "localStorage"→"임시기억" 정정, 붙여넣기 순서 강제(버튼 비활성화)
+
+#### 한 일
+
+1. **표현 정정** — 사용자 화면 안내문에 노출되던 `localStorage` 라는 개발 용어를
+   "임시기억"으로 바꿨다: `career.html`(저장된 사례 안내) · `login.html`(데모 안내) ·
+   `signup.html`(데모 안내) · `error.html`(계정 없음 안내), 총 4곳. `assets/auth.js`·
+   `assets/career.js` 안의 실제 `localStorage.getItem/setItem` 호출과 개발자 주석은
+   그대로 뒀다 — 실제 브라우저 API 이름이라 바꿀 수 없고, 사용자 요청도 "표현"(화면에
+   보이는 문구)에 한정된다.
+2. **`career-step1.html`** — `nextBtn`("AI 분석결과 붙여넣기로 →")을 페이지 진입
+   시 비활성 상태로 시작(`a.btn.disabled`, 신설 CSS로 `pointer-events:none` +
+   `opacity:.55` — `<a>` 는 `disabled` 속성이 없어 클래스로 흉내냈다), `aiOpenBtn`
+   ("AI 화면 열기(꼭 복사해오세요)") 클릭 시 비활성 클래스를 제거해 활성화한다.
+   프롬프트만 복사하고 AI 화면에 가지 않은 채 바로 다음으로 넘어가는 걸 막는다.
+3. **`career-step2.html`** — `saveBtn1`(1차)·`saveBtn`(2차) 모두, 붙여넣기가
+   비어있을 때뿐 아니라 **완결성 검사(`checkReport`)에 문제가 있을 때도** 비활성화
+   하도록 강화. 기존에는 "경고가 떠도 저장은 막지 않는다 — 판단은 사용자 몫"이라는
+   의도된 설계였는데, 사용자 요청으로 하드 게이트로 바꿨다(관련 주석도 갱신).
+
+#### Verification run
+
+- `.\init.ps1` → **82개 항목 전부 `[OK]`, exit 0**
+- 실브라우저(CSS 캐시까지 무효화해 재확인 — 이번에 실제로 브라우저가 옛
+  `career.css` 를 들고 있어서 처음엔 비활성 스타일이 안 보였다가, 캐시를 지우니
+  정상 확인됨):
+  - `career.html` 본문에 "임시기억" 텍스트 존재 확인
+  - `career-step1.html`: `nextBtn` 초기 `pointer-events:none`·`opacity:.55` 확인 →
+    `aiOpenBtn` 클릭 후 `pointer-events:auto`·`opacity:1`·`aria-disabled` 제거 확인
+  - `career-step2.html`: 불완전한 텍스트("짧고 불완전한 텍스트" 등)를 1차·2차 각각
+    붙여넣었을 때 `saveBtn1`/`saveBtn` 모두 비활성 유지 확인(`Career.checkReport` 가
+    실제로 problems 를 반환하는 것도 직접 호출해 확인)
+  - 콘솔 에러 0
+
+#### 상태
+
+`auth-001`·`auth-002`·`auth-005`(표현 정정), `paste-001`·`paste-002`·`paste-007`
+(버튼 게이팅)에 evidence 추가, 상태는 모두 그대로 `passing`.

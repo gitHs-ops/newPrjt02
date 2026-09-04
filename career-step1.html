@@ -61,7 +61,8 @@
     </div>
 
     <div class="btn-row">
-        <a class="btn btn-primary grow" id="nextBtn" href="#">AI 분석결과 붙여넣기로 →</a>
+        <a class="btn btn-primary grow disabled" id="nextBtn" href="#" aria-disabled="true"
+           title="먼저 [AI 화면 열기]를 눌러야 활성화됩니다">AI 분석결과 붙여넣기로 →</a>
         <a class="btn btn-ghost" href="career.html">처음으로</a>
     </div>
 
@@ -86,6 +87,15 @@
     document.getElementById('caseTitle').textContent = kase.label;
     /* 1차 결과 붙여넣기는 career-step2.html 로 합쳐졌다(2026-09-04) — 별도 페이지 없음. */
     document.getElementById('nextBtn').href = 'career-step2.html?case=' + encodeURIComponent(kase.id);
+
+    /* [AI 화면 열기] 를 실제로 눌러야 [AI 분석결과 붙여넣기로] 가 열린다 — 프롬프트를
+       복사해 AI 화면에 가지도 않고 바로 다음으로 넘어가는 걸 막는다. */
+    document.getElementById('aiOpenBtn').addEventListener('click', function () {
+        var next = document.getElementById('nextBtn');
+        next.classList.remove('disabled');
+        next.removeAttribute('aria-disabled');
+        next.removeAttribute('title');
+    });
 
     /* ------------------------------------------------------------ 폼 생성 */
 

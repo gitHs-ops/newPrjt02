@@ -266,7 +266,8 @@
       ],
       "evidence": [
         "2026-08-31 브라우저 실행 검증: 5개 검증 메시지 전부 기대대로 동작",
-        "가입 후 저장값 확인 — salt 존재, hash 44자(base64 256bit), 평문 'pass1234' 미포함(false)"
+        "가입 후 저장값 확인 — salt 존재, hash 44자(base64 256bit), 평문 'pass1234' 미포함(false)",
+        "2026-09-04: 사용자 요청으로 안내문의 'localStorage' 표현을 '임시기억'으로 정정 (career.html/login.html/signup.html/error.html, 4곳). 코드 내부 API 호출·주석은 그대로(실제 브라우저 API 이름이라 바꿀 수 없다)."
       ],
       "notes": "중복확인 통과 후 아이디를 고치면 확인이 무효화되고 재확인을 요구한다."
     },
@@ -288,7 +289,8 @@
         "2026-08-31 검증: 유지 끔 → localStorage=false / sessionStorage=true",
         "2026-08-31 검증: form submit 핸들러 사용이라 Enter 키가 기본 동작으로 처리됨",
         "2026-09-02(Session 015) 이동 대상 변경 — 로그인 성공이 이제 home.html 이 아니라 career.html 로 간다. 실제 로그인 폼(아이디/비밀번호 입력 → [로그인] 클릭)을 눌러 career.html 로 도착함을 실기동 확인",
-        "init.ps1: 'login.html 이 로그인 성공 시 career.html 로 이동' [OK]"
+        "init.ps1: 'login.html 이 로그인 성공 시 career.html 로 이동' [OK]",
+        "2026-09-04: 사용자 요청으로 안내문의 'localStorage' 표현을 '임시기억'으로 정정 (career.html/login.html/signup.html/error.html, 4곳). 코드 내부 API 호출·주석은 그대로(실제 브라우저 API 이름이라 바꿀 수 없다)."
       ],
       "notes": "아이디가 없을 때와 비밀번호가 틀릴 때 같은 메시지를 반환한다(계정 존재 여부 노출 방지)."
     },
@@ -341,7 +343,8 @@
         "등록 계정이 0개면 error.html 에 가입 안내가 추가로 뜬다."
       ],
       "evidence": [
-        "2026-08-31 검증: error.html 사유 표시 + 등록 계정 수 1개 표시 확인"
+        "2026-08-31 검증: error.html 사유 표시 + 등록 계정 수 1개 표시 확인",
+        "2026-09-04: 사용자 요청으로 안내문의 'localStorage' 표현을 '임시기억'으로 정정 (career.html/login.html/signup.html/error.html, 4곳). 코드 내부 API 호출·주석은 그대로(실제 브라우저 API 이름이라 바꿀 수 없다)."
       ],
       "notes": "실패 사유는 textContent 로만 넣어 HTML 주입 여지를 없앴다. 2026-09-02(Session 015): 원래 이 기능은 성공(home.html)·실패(error.html) 화면을 함께 다뤘다. home.html 이 폐기되면서 그쪽 내용은 auth-008 로 옮기고, 이 기능은 실패 안내만 남겼다."
     },
@@ -454,7 +457,8 @@
         "init.ps1: career.js 공개 API 12종 · 클립보드 대체 경로 · 프롬프트 원문 직접 읽기 검사 통과",
         "2026-09-02 2차 경로(paste-007)까지 구현·검증 완료 — buildPrompt2 / report2 가 UI 로 도달 가능해졌다",
         "2026-09-03: 화면 문구 정리 — 1차 '프롬프트 복사'->'프롬프트 생성하고 복사하기', '전부 지우기'->'예시 지우기', 2차 '생성하고 복사하기'는 그대로. 안내 문구도 다듬고 1차 프롬프트 패널 안내문은 진하게(.emph) 표시. '원문 보기' 버튼(1·2차 프롬프트 패널)과 붙여넣기 쪽 '지우기' 버튼(1·2차)은 제거. 붙여넣기 textarea 가 비어 있으면 저장 버튼이 비활성화되도록 추가(1·2차 공통).",
-        "2026-09-04: 1차 결과 붙여넣기(career-report1.html)를 career-step2.html 로 병합, 파일 삭제(git rm, 이력에 남아 복원 가능) — 1차·2차 결과 붙여넣기가 이제 한 화면에 있다(1차가 위, 2차가 아래). id 충돌 방지로 1차 쪽 요소에 '1' 접미사 부여 (pasted1/pasteInfo1/check1/saveBtn1/savedPanel1/savedMeta1/report1/mdBtn1/copyBtn1). career-step1.html 의 다음 버튼과 STEP3 라벨('AI 결과 붙여넣기')도 career-step2.html 을 가리키도록 갱신. 1차를 이 페이지에서 저장하면 2차 프롬프트가 새로고침 없이 즉시 재생성된다(updateR1Info()+rebuild() 재호출). 'AI 화면 열기'->'AI 화면 열기(꼭 복사해오세요)'로 1·2차 공통 변경. 실브라우저로 1차 미저장 상태 진입 → 붙여넣기 저장 → r1info·savedPanel1·2차 sizeInfo 실시간 갱신 확인 → 새로고침 후 유지 확인 → 2차 붙여넣기도 정상 동작(회귀 없음) 확인 → career.html 사례 목록이 career-step2.html 로 라우팅됨 확인. init.ps1 -> 82개 항목 전부 [OK], exit 0."
+        "2026-09-04: 1차 결과 붙여넣기(career-report1.html)를 career-step2.html 로 병합, 파일 삭제(git rm, 이력에 남아 복원 가능) — 1차·2차 결과 붙여넣기가 이제 한 화면에 있다(1차가 위, 2차가 아래). id 충돌 방지로 1차 쪽 요소에 '1' 접미사 부여 (pasted1/pasteInfo1/check1/saveBtn1/savedPanel1/savedMeta1/report1/mdBtn1/copyBtn1). career-step1.html 의 다음 버튼과 STEP3 라벨('AI 결과 붙여넣기')도 career-step2.html 을 가리키도록 갱신. 1차를 이 페이지에서 저장하면 2차 프롬프트가 새로고침 없이 즉시 재생성된다(updateR1Info()+rebuild() 재호출). 'AI 화면 열기'->'AI 화면 열기(꼭 복사해오세요)'로 1·2차 공통 변경. 실브라우저로 1차 미저장 상태 진입 → 붙여넣기 저장 → r1info·savedPanel1·2차 sizeInfo 실시간 갱신 확인 → 새로고침 후 유지 확인 → 2차 붙여넣기도 정상 동작(회귀 없음) 확인 → career.html 사례 목록이 career-step2.html 로 라우팅됨 확인. init.ps1 -> 82개 항목 전부 [OK], exit 0.",
+        "2026-09-04: career-step1.html 의 'AI 분석결과 붙여넣기로' 버튼을 [AI 화면 열기]를 누르기 전까지 비활성화(CSS a.btn.disabled + pointer-events:none, 클릭 시 해제)로 바꿈 — 프롬프트를 복사해 AI 화면에 가지 않고 바로 다음으로 넘어가는 걸 막는다. career-step2.html 의 1·2차 저장 버튼(saveBtn1/saveBtn)도 완결성 검사(checkReport)에 문제가 있으면 비활성화하도록 강화(기존엔 경고만 띄우고 저장은 허용했었다 — 사용자 요청으로 하드 게이트로 전환). 실브라우저로 두 화면 모두 확인: 비활성 초기상태·시각 효과(opacity/pointer-events)·[AI 화면 열기] 클릭 후 해제, 불완전한 텍스트 입력 시 1·2차 저장 버튼 모두 비활성 유지 확인. init.ps1 -> 82개 항목 전부 [OK], exit 0."
       ],
       "notes": "1·2차 모두 동작한다. ⚠ 클립보드 읽기(readText)는 권한상 자동 검증이 불가해, 복사된 내용의 바이트 단위 일치는 아직 확인하지 못했다 — 쓰기 성공과 글자 수만 확인했다. 사람이 실제 AI 화면에 한 번 붙여넣어야 완전히 닫힌다. 프롬프트 원문은 생성물(career-prompts.js) 대신 fetch 로 직접 읽는다 — '원문을 고치고 생성기를 안 돌려 낡은 프롬프트가 나가는' 사고를 구조적으로 없앴다."
     },
@@ -480,7 +484,8 @@
         "안전성: mdToHtml 이 <img onerror>·<script> 를 이스케이프해 태그가 살아나지 않음(**굵게**는 정상 렌더)",
         "2026-09-02 2차 경로(paste-007)까지 구현·검증 완료 — buildPrompt2 / report2 가 UI 로 도달 가능해졌다",
         "2026-09-03: 화면 문구 정리 — 1차 '프롬프트 복사'->'프롬프트 생성하고 복사하기', '전부 지우기'->'예시 지우기', 2차 '생성하고 복사하기'는 그대로. 안내 문구도 다듬고 1차 프롬프트 패널 안내문은 진하게(.emph) 표시. '원문 보기' 버튼(1·2차 프롬프트 패널)과 붙여넣기 쪽 '지우기' 버튼(1·2차)은 제거. 붙여넣기 textarea 가 비어 있으면 저장 버튼이 비활성화되도록 추가(1·2차 공통).",
-        "2026-09-04: 1차 결과 붙여넣기(career-report1.html)를 career-step2.html 로 병합, 파일 삭제(git rm, 이력에 남아 복원 가능) — 1차·2차 결과 붙여넣기가 이제 한 화면에 있다(1차가 위, 2차가 아래). id 충돌 방지로 1차 쪽 요소에 '1' 접미사 부여 (pasted1/pasteInfo1/check1/saveBtn1/savedPanel1/savedMeta1/report1/mdBtn1/copyBtn1). career-step1.html 의 다음 버튼과 STEP3 라벨('AI 결과 붙여넣기')도 career-step2.html 을 가리키도록 갱신. 1차를 이 페이지에서 저장하면 2차 프롬프트가 새로고침 없이 즉시 재생성된다(updateR1Info()+rebuild() 재호출). 'AI 화면 열기'->'AI 화면 열기(꼭 복사해오세요)'로 1·2차 공통 변경. 실브라우저로 1차 미저장 상태 진입 → 붙여넣기 저장 → r1info·savedPanel1·2차 sizeInfo 실시간 갱신 확인 → 새로고침 후 유지 확인 → 2차 붙여넣기도 정상 동작(회귀 없음) 확인 → career.html 사례 목록이 career-step2.html 로 라우팅됨 확인. init.ps1 -> 82개 항목 전부 [OK], exit 0."
+        "2026-09-04: 1차 결과 붙여넣기(career-report1.html)를 career-step2.html 로 병합, 파일 삭제(git rm, 이력에 남아 복원 가능) — 1차·2차 결과 붙여넣기가 이제 한 화면에 있다(1차가 위, 2차가 아래). id 충돌 방지로 1차 쪽 요소에 '1' 접미사 부여 (pasted1/pasteInfo1/check1/saveBtn1/savedPanel1/savedMeta1/report1/mdBtn1/copyBtn1). career-step1.html 의 다음 버튼과 STEP3 라벨('AI 결과 붙여넣기')도 career-step2.html 을 가리키도록 갱신. 1차를 이 페이지에서 저장하면 2차 프롬프트가 새로고침 없이 즉시 재생성된다(updateR1Info()+rebuild() 재호출). 'AI 화면 열기'->'AI 화면 열기(꼭 복사해오세요)'로 1·2차 공통 변경. 실브라우저로 1차 미저장 상태 진입 → 붙여넣기 저장 → r1info·savedPanel1·2차 sizeInfo 실시간 갱신 확인 → 새로고침 후 유지 확인 → 2차 붙여넣기도 정상 동작(회귀 없음) 확인 → career.html 사례 목록이 career-step2.html 로 라우팅됨 확인. init.ps1 -> 82개 항목 전부 [OK], exit 0.",
+        "2026-09-04: career-step1.html 의 'AI 분석결과 붙여넣기로' 버튼을 [AI 화면 열기]를 누르기 전까지 비활성화(CSS a.btn.disabled + pointer-events:none, 클릭 시 해제)로 바꿈 — 프롬프트를 복사해 AI 화면에 가지 않고 바로 다음으로 넘어가는 걸 막는다. career-step2.html 의 1·2차 저장 버튼(saveBtn1/saveBtn)도 완결성 검사(checkReport)에 문제가 있으면 비활성화하도록 강화(기존엔 경고만 띄우고 저장은 허용했었다 — 사용자 요청으로 하드 게이트로 전환). 실브라우저로 두 화면 모두 확인: 비활성 초기상태·시각 효과(opacity/pointer-events)·[AI 화면 열기] 클릭 후 해제, 불완전한 텍스트 입력 시 1·2차 저장 버튼 모두 비활성 유지 확인. init.ps1 -> 82개 항목 전부 [OK], exit 0."
       ],
       "notes": "붙여넣은 보고서는 AI 출력이라 신뢰 대상이 아니므로 렌더 전에 전부 이스케이프한 뒤 아는 문법만 되살린다. 저장 레코드에 source:'paste' 를 남겨 자동 호출 시절 기록과 구분한다."
     },
@@ -595,7 +600,8 @@
         "init.ps1 → 72개 항목 전부 [OK], exit 0 ('2차 화면이 1차 결과를 프롬프트에 싣는다' 포함)",
         "2026-09-03: 프롬프트 복사·결과 붙여넣기 왕복을 줄이려고 career-report2.html 의 붙여넣기·완결성검사·저장·렌더·md저장·합본저장·결과복사 전체를 career-step2.html 로 병합하고 파일을 삭제(git rm, 이력에 남아 복원 가능). id 충돌 방지로 clearBtn/copyBtn 을 pasteClearBtn/resultCopyBtn 로 분리. 실브라우저로 재검증: 사례 생성 → report1 생성 → career-step2.html 에서 2차 md 82자 붙여넣기 저장 → savedPanel 표시·bothBtn 활성화 확인 → 새로고침 후 유지 확인 → career.html 사례 목록이 career-step2.html 로 라우팅됨(career-report2.html 아님) 확인. init.ps1 → 82개 항목 전부 [OK], exit 0 (career-report2.html 폐기 확인 포함)",
         "2026-09-03: 화면 문구 정리 — 1차 '프롬프트 복사'->'프롬프트 생성하고 복사하기', '전부 지우기'->'예시 지우기', 2차 '생성하고 복사하기'는 그대로. 안내 문구도 다듬고 1차 프롬프트 패널 안내문은 진하게(.emph) 표시. '원문 보기' 버튼(1·2차 프롬프트 패널)과 붙여넣기 쪽 '지우기' 버튼(1·2차)은 제거. 붙여넣기 textarea 가 비어 있으면 저장 버튼이 비활성화되도록 추가(1·2차 공통).",
-        "2026-09-04: 1차 결과 붙여넣기(career-report1.html)를 career-step2.html 로 병합, 파일 삭제(git rm, 이력에 남아 복원 가능) — 1차·2차 결과 붙여넣기가 이제 한 화면에 있다(1차가 위, 2차가 아래). id 충돌 방지로 1차 쪽 요소에 '1' 접미사 부여 (pasted1/pasteInfo1/check1/saveBtn1/savedPanel1/savedMeta1/report1/mdBtn1/copyBtn1). career-step1.html 의 다음 버튼과 STEP3 라벨('AI 결과 붙여넣기')도 career-step2.html 을 가리키도록 갱신. 1차를 이 페이지에서 저장하면 2차 프롬프트가 새로고침 없이 즉시 재생성된다(updateR1Info()+rebuild() 재호출). 'AI 화면 열기'->'AI 화면 열기(꼭 복사해오세요)'로 1·2차 공통 변경. 실브라우저로 1차 미저장 상태 진입 → 붙여넣기 저장 → r1info·savedPanel1·2차 sizeInfo 실시간 갱신 확인 → 새로고침 후 유지 확인 → 2차 붙여넣기도 정상 동작(회귀 없음) 확인 → career.html 사례 목록이 career-step2.html 로 라우팅됨 확인. init.ps1 -> 82개 항목 전부 [OK], exit 0."
+        "2026-09-04: 1차 결과 붙여넣기(career-report1.html)를 career-step2.html 로 병합, 파일 삭제(git rm, 이력에 남아 복원 가능) — 1차·2차 결과 붙여넣기가 이제 한 화면에 있다(1차가 위, 2차가 아래). id 충돌 방지로 1차 쪽 요소에 '1' 접미사 부여 (pasted1/pasteInfo1/check1/saveBtn1/savedPanel1/savedMeta1/report1/mdBtn1/copyBtn1). career-step1.html 의 다음 버튼과 STEP3 라벨('AI 결과 붙여넣기')도 career-step2.html 을 가리키도록 갱신. 1차를 이 페이지에서 저장하면 2차 프롬프트가 새로고침 없이 즉시 재생성된다(updateR1Info()+rebuild() 재호출). 'AI 화면 열기'->'AI 화면 열기(꼭 복사해오세요)'로 1·2차 공통 변경. 실브라우저로 1차 미저장 상태 진입 → 붙여넣기 저장 → r1info·savedPanel1·2차 sizeInfo 실시간 갱신 확인 → 새로고침 후 유지 확인 → 2차 붙여넣기도 정상 동작(회귀 없음) 확인 → career.html 사례 목록이 career-step2.html 로 라우팅됨 확인. init.ps1 -> 82개 항목 전부 [OK], exit 0.",
+        "2026-09-04: career-step1.html 의 'AI 분석결과 붙여넣기로' 버튼을 [AI 화면 열기]를 누르기 전까지 비활성화(CSS a.btn.disabled + pointer-events:none, 클릭 시 해제)로 바꿈 — 프롬프트를 복사해 AI 화면에 가지 않고 바로 다음으로 넘어가는 걸 막는다. career-step2.html 의 1·2차 저장 버튼(saveBtn1/saveBtn)도 완결성 검사(checkReport)에 문제가 있으면 비활성화하도록 강화(기존엔 경고만 띄우고 저장은 허용했었다 — 사용자 요청으로 하드 게이트로 전환). 실브라우저로 두 화면 모두 확인: 비활성 초기상태·시각 효과(opacity/pointer-events)·[AI 화면 열기] 클릭 후 해제, 불완전한 텍스트 입력 시 1·2차 저장 버튼 모두 비활성 유지 확인. init.ps1 -> 82개 항목 전부 [OK], exit 0."
       ],
       "notes": "1차 결과가 없으면 2차 화면이 경고를 띄우고 프롬프트에도 '⚠ 1차 결과 없음' 을 표시한다 — 조용히 빈 입력으로 나가지 않는다. 합본 버튼은 1차가 없으면 비활성이다. ※ 2026-09-03: career-report2.html 은 더 이상 없다 — '2차결과 붙여넣기' 패널이 career-step2.html 안에 있다. 버튼 문구도 이때 '프롬프트 복사'→'생성하고 복사하기'로 바뀌었다."
     },

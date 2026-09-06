@@ -503,3 +503,33 @@ select.quick:focus { color: var(--text-primary); }
 @media (prefers-reduced-motion: reduce) {
     .panel, .case, .doc-head { animation: none !important; }
 }
+
+/* ------------------------------------------------------------ PDF 저장
+   외부 라이브러리 없이 브라우저 인쇄("PDF로 저장")를 빌려 쓴다(Career.printReport).
+   화면(screen)에서는 #printStage 가 항상 숨어 있고, body.printing-report 가 붙어
+   있을 때만(인쇄 중) 나머지 화면을 숨기고 #printStage 를 보여준다. */
+#printStage { display: none; }
+#printStage .print-meta {
+    font-size: 12.5px;
+    color: var(--text-secondary);
+    margin: 0 0 18px;
+}
+@media print {
+    body.printing-report > .doc-wrap,
+    body.printing-report > .toast,
+    body.printing-report .modal-backdrop {
+        display: none !important;
+    }
+    body.printing-report #printStage {
+        display: block !important;
+    }
+    /* auth.css 의 장식용 배경 그라디언트(body, ::before/::after)는 인쇄에서 뺀다 —
+       흰 종이에 잉크만 낭비하는 화면 전용 장식이다. */
+    body.printing-report {
+        background: #fff !important;
+    }
+    body.printing-report::before,
+    body.printing-report::after {
+        display: none !important;
+    }
+}

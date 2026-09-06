@@ -641,6 +641,28 @@
         saveBlob(withFrontMatter(k, '1-2', body), fileName(k, '1-2합본'));
     }
 
+    /** "PDF 저장" — 외부 라이브러리 없이 브라우저 인쇄(Ctrl+P)의 "PDF로 저장" 대상을
+        빌려 쓴다. #printStage 에 보고서만 옮겨 담고 body.printing-report 로 나머지
+        화면을 인쇄에서 숨긴 뒤 window.print() 를 부른다 — 화면(screen) 표시는 전혀
+        건드리지 않는다(@media print 안에서만 효과가 있음). */
+    function printReport(title, meta, md) {
+        var stage = document.getElementById('printStage');
+        if (!stage) { throw new Error('이 화면에는 인쇄 영역(#printStage)이 없습니다.'); }
+        stage.innerHTML = '<h1>' + esc(title) + '</h1>' +
+            (meta ? '<p class="print-meta">' + esc(meta) + '</p>' : '') +
+            '<div class="report">' + mdToHtml(md) + '</div>';
+        var prevTitle = document.title;
+        document.title = title;
+        document.body.classList.add('printing-report');
+        function cleanup() {
+            document.body.classList.remove('printing-report');
+            document.title = prevTitle;
+            window.removeEventListener('afterprint', cleanup);
+        }
+        window.addEventListener('afterprint', cleanup);
+        window.print();
+    }
+
     /* --------------------------------------------------------- 옵시디언 */
 
     /* Obsidian **Local REST API** 커뮤니티 플러그인으로 직접 PUT 한다(career-009).
@@ -749,6 +771,7 @@
         fileName: fileName,
         downloadMd: downloadMd,
         downloadCombined: downloadCombined,
+        printReport: printReport,
 
         /* 옵시디언 */
         getObsidianConfig: getObsidianConfig,

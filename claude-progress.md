@@ -2087,3 +2087,69 @@ AI 응답이 실제로는 괜찮은데 완결성 검사 표현(정확한 소제�
 이걸로 Session 033 이 남겼던 "다음 세션 필수" 항목은 다음 세션까지
 기다리지 않고 이번 세션 안에서 닫혔다. `feature_list.json` 의
 `paste-002` evidence 에 같은 내용을 기록했다.
+
+### Session 034 — 문서 기록 보완: PR #2~#4 (버튼 정렬 2건 + PDF 저장) 세션 로그 누락분 채움
+
+#### 한 일
+
+세션 시작 시 `claude-progress.md`/`feature_list.json` 의 최신 기록은 Session
+033(2026-09-04, `paste-002`)에서 멈춰 있었는데, `git log`·GitHub PR 목록을
+대조하니 그 뒤로 같은 브랜치(`claude/report-result-display-s16zdc`)에서 PR
+#2·#3·#4(2026-09-06, 전부 머지됨)가 이미 나가 있었다:
+
+- PR #2(https://github.com/gitHs-ops/newPrjt02/pull/2) — `career-step1.html`
+  프롬프트 카드 `[원문 보기]` 버튼 좌측 정렬
+- PR #3(https://github.com/gitHs-ops/newPrjt02/pull/3) — 같은 카드의 글자수
+  안내(`#sizeInfo`)를 `[원문 보기]` 바로 옆으로 이동
+- PR #4(https://github.com/gitHs-ops/newPrjt02/pull/4) — "저장된 1차/2차 결과"
+  패널에 `[PDF 저장]` 버튼 추가(`Career.printReport()`, 브라우저 내장 인쇄
+  재사용 — 전용 PDF 라이브러리 없음)
+
+세 PR 모두 `.\init.ps1` 통과 + Playwright 실기동 검증을 각자 PR 본문에
+자체 기록해 뒀지만(이 저장소 관례대로), `claude-progress.md` 세션 로그나
+`feature_list.json` evidence 로는 옮겨지지 않은 채 남아 있었다 — 코드는
+정상 배포됐는데 이 저장소의 "기록이 원본" 원칙(`CLAUDE.md`)상 근거가 비어
+있던 상태였다. `feature_list.json` 의 `passing` 게이트 자체는 깨지지
+않았다(evidence 가 비어 있던 게 아니라 최신 3건이 아예 누락된 상태였다).
+
+이번 세션은 **코드를 바꾸지 않고 기록만 보완**했다:
+
+- `paste-001`(프롬프트 복사 화면) evidence 배열에 PR #2·#3 요약을 한 항목
+  추가.
+- PDF 저장은 기존 어느 feature id 에도 속하지 않는 별개 기능이라
+  `career-013`(저장된 1차/2차 결과 PDF 저장)을 새로 만들고, PR #4 본문에
+  이미 있던 테스트plan 을 `verification`/`evidence` 로 옮겨 적었다.
+  `evidence` 문구에 "PR 자체 기록"임을 명시해, 이 세션이 방금 재현·재검증한
+  것이 아님을 구분해 뒀다.
+- `feature_list.json` 의 `last_updated` 를 2026-09-10 으로 갱신.
+
+#### Verification run
+
+- `.\init.ps1`(이 컨테이너에 이미 설치돼 있던 pwsh 7.6.5) → **63개 항목
+  전부 `[OK]` · `[FAIL]` 0건 · 검증 통과.** `feature_list.json` 파싱
+  성공(기능 34개) · "passing 기능 전부에 근거가 기록돼 있음(16건)" 항목도
+  통과 — 새 `career-013` 의 evidence 가 비어 있지 않음이 이 게이트로도
+  확인된다.
+- `python3` 로 수정한 `feature_list.json` 이 유효한 JSON 인지(재파싱 성공)
+  별도 확인.
+- 이번 세션은 진짜 3D/가구 배치 같은 무관한 다른 저장소(`gitHs-ops/myList`)
+  작업 요약이 잘못 이어져 시작됐다 — 실제 이 저장소(`gitHs-ops/newPrjt02`)
+  스코프·브랜치(`claude/report-result-display-s16zdc`)와 맞지 않음을 먼저
+  확인하고, 사용자에게 확인받은 뒤 이 저장소 본연의 Operating Loop 로 전환해
+  진행했다.
+
+#### 상태
+
+`paste-001` evidence 갱신, 상태 그대로 `passing`. `career-013` 신설,
+`passing`(근거는 PR #4 자체 기록 인용). 둘 다 코드 변경 없음 — 기록
+보완만.
+
+#### Next best step
+
+- `feature_list.json` 상 미완(`not_started`/`in_progress`) 기능은 0건이다
+  (16 passing · 18 retired). 다음에 만들 기능은 사용자 요청이 있어야
+  정해진다 — 이 저장소 규칙("한 번에 한 기능")상 스스로 새 기능을 지어내지
+  않았다.
+- (선택) `session-handoff.md` 는 아직 Session 033 이전 상태를 요약한 채다 —
+  다음에 그 파일도 최신 세션 기준으로 다시 쓰면 좋다(이번 세션은
+  `claude-progress.md`/`feature_list.json` 만 갱신했다).
